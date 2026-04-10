@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+part 'auth_state.dart';
+
+class AuthCubit extends Cubit<AuthState> {
+  AuthCubit() : super(const AuthState());
+
+  // final AuthRepository repo = getIt<AuthRepository>();
+
+  final passController = TextEditingController();
+  final emailController = TextEditingController();
+
+  void onChanged({String? email, String? password}) {
+    emit(
+      state.copyWith(
+        email: email ?? state.email,
+        password: password ?? state.password,
+      ),
+    );
+  }
+
+  void togglePasswordVisibility() {
+    emit(state.copyWith(isPasswordVisible: !state.isPasswordVisible));
+  }
+
+  // Future<void> login(BuildContext context) async {
+  //   try {
+  //     emit(state.copyWith(loading: true));
+
+  //     final response = await repo.login(
+  //       value: emailController.text.trim(),
+  //       password: passController.text,
+  //     );
+
+  //     getIt<AppBloc>().add(
+  //       SetUserData(user: response.user, token: response.token),
+  //     );
+
+  //     emit(state.copyWith(loading: false));
+
+  //     ShowSnackbar.snackbar(
+  //       context,
+  //       "Selamat Datang ${response.user.name}",
+  //       isSuccess: true,
+  //     );
+
+  //     HomeRoutes().go(context);
+  //   } catch (e) {
+  //     emit(state.copyWith(loading: false));
+
+  //     ShowSnackbar.snackbar(context, e.toString(), isSuccess: false);
+  //   }
+  // }
+
+  @override
+  Future<void> close() {
+    emailController.dispose();
+    passController.dispose();
+    return super.close();
+  }
+}

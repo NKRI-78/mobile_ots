@@ -1,6 +1,5 @@
 name: mobile_ots
 description: "A new Flutter project."
-
 publish_to: "none"
 
 version: 1.0.0+1
@@ -14,11 +13,53 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
+  # State Management
+
+  bloc: ^9.0.0
+  flutter_bloc: ^9.0.0
+  hydrated_bloc: ^10.0.0
+
+  # Dependency Injection
+
+  get_it: ^8.0.3
+
+  # Networking
+
+  http: ^1.6.0
+
+  # Routing
+
+  go_router: ^15.1.1
+
+  # Utilities
+
+  equatable: ^2.0.7
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  timeago: ^3.7.1
+
+  # JSON
+
+  json_annotation: ^4.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
 
+  # Code Generation
+
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.3
+  go_router_builder: ^2.9.0
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
