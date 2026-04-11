@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 var baseTheme = ThemeData(
-  colorScheme: const ColorScheme.light(surface: Colors.white),
+  scaffoldBackgroundColor: Colors.grey.shade100,
+  colorScheme: ColorScheme.light(
+    surface: Colors.white,
+    primary: Color(0xff1A73E9),
+  ),
   appBarTheme: AppBarTheme(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

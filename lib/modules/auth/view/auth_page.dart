@@ -98,7 +98,7 @@ class AuthView extends StatelessWidget {
                                     label: "Masuk",
                                     onPressed: () {
                                       // TODO : LOGIN
-                                      HomeRoutes().go(context);
+                                      CategoryRoutes().go(context);
                                     },
                                   ),
 
