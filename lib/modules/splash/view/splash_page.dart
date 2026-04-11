@@ -44,10 +44,9 @@ class _SplashViewState extends State<SplashView>
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 3), () {
       context.read<AppBloc>().add(FinishSplash());
-      // AuthRoutes().go(context);
-      CategoryRoutes().go(context);
+      AuthRoutes().go(context);
     });
   }
 
