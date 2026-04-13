@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
 
 import '../modules/app/bloc/app_bloc.dart';
 import 'http_client.dart';
@@ -14,6 +15,7 @@ class MyInjection {
     getIt.registerLazySingleton<AppBloc>(() => AppBloc());
 
     //CUBIT
+    getIt.registerFactory<CategoryCubit>(() => CategoryCubit());
 
     //REPOSITORY
   }

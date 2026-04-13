@@ -6,7 +6,7 @@ part of 'builder.dart';
 // GoRouterGenerator
 // **************************************************************************
 
-List<RouteBase> get $appRoutes => [$splashRoute, $authRoutes, $homeRoutes];
+List<RouteBase> get $appRoutes => [$splashRoute, $authRoutes, $categoryRoutes];
 
 RouteBase get $splashRoute => GoRouteData.$route(
   path: '/splash',
@@ -50,13 +50,16 @@ extension $AuthRoutesExtension on AuthRoutes {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $homeRoutes =>
-    GoRouteData.$route(path: '/home', factory: $HomeRoutesExtension._fromState);
+RouteBase get $categoryRoutes => GoRouteData.$route(
+  path: '/category',
 
-extension $HomeRoutesExtension on HomeRoutes {
-  static HomeRoutes _fromState(GoRouterState state) => HomeRoutes();
+  factory: $CategoryRoutesExtension._fromState,
+);
 
-  String get location => GoRouteData.$location('/home');
+extension $CategoryRoutesExtension on CategoryRoutes {
+  static CategoryRoutes _fromState(GoRouterState state) => CategoryRoutes();
+
+  String get location => GoRouteData.$location('/category');
 
   void go(BuildContext context) => context.go(location);
 

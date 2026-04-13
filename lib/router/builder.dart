@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_ots/modules/category/view/category_page.dart';
 
 import '../modules/auth/view/auth_page.dart';
-import '../modules/home/view/home_page.dart';
 import '../modules/splash/view/splash_page.dart';
 
 part 'builder.g.dart';
@@ -23,10 +23,10 @@ class AuthRoutes extends GoRouteData {
   }
 }
 
-@TypedGoRoute<HomeRoutes>(path: '/home')
-class HomeRoutes extends GoRouteData {
+@TypedGoRoute<CategoryRoutes>(path: '/category')
+class CategoryRoutes extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return HomePage();
+    return CategoryPage();
   }
 }
