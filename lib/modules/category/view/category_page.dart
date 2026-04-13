@@ -1,13 +1,19 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:mobile_ots/misc/extensions.dart';
 import 'package:mobile_ots/misc/injections.dart';
+import 'package:mobile_ots/misc/snackbar.dart';
+
 import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
 import 'package:mobile_ots/modules/category/widget/category_app_bar.dart';
 import 'package:mobile_ots/modules/category/widget/category_bottom_sheet.dart';
 import 'package:mobile_ots/modules/category/widget/category_list_tile.dart';
 import 'package:mobile_ots/modules/category/widget/category_name_form_sheet.dart';
-import 'package:mobile_ots/repositories/category/model/category.dart';
+import 'package:mobile_ots/modules/category/widget/custom_drawer.dart';
+import 'package:mobile_ots/repositories/category/model/category_models.dart';
 import 'package:mobile_ots/widgets/dialog/checkout_dialog.dart';
 import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
 import 'package:uuid/uuid.dart';
@@ -38,13 +44,14 @@ class _CategoryPageViewState extends State<CategoryPageView> {
   void initState() {
     super.initState();
     _categoryCubit = context.read<CategoryCubit>();
+    _categoryCubit.fetchCategories();
   }
 
   void _onAddCategory() async {
     final newName = await CategoryNameFormSheet.launch(context: context);
+
     if (newName != null) {
-      final newCategory = Category(id: Uuid().v4(), name: newName);
-      _categoryCubit.addCategory(newCategory);
+      _categoryCubit.createCategory(name: newName);
     }
   }
 
@@ -53,10 +60,10 @@ class _CategoryPageViewState extends State<CategoryPageView> {
       context: context,
       initial: update.name,
     );
-    if (updatedName != null) {
-      final updatedCategory = update.copyWith(name: updatedName);
-      _categoryCubit.updateCategory(updatedCategory);
-    }
+    // if (updatedName != null) {
+    //   final updatedCategory = update.copyWith(name: updatedName);
+    //   _categoryCubit.updateCategory(updatedCategory);
+    // }
   }
 
   void _onDeleteCategory(Category target) async {
@@ -71,7 +78,16 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     final checkoutData = await CheckoutDialog(
       categories: _categoryCubit.state.categories,
     ).show(context);
-    if (checkoutData != null) {}
+
+    if (checkoutData != null) {
+      checkoutData.note;
+      checkoutData.amount;
+      // hit api buat checkout
+      // _categoryCubit.charge(ammount, checkoutData.note);
+      log(
+        {"ammount": checkoutData.amount, "note": checkoutData.note}.toString(),
+      );
+    }
   }
 
   @override
@@ -90,11 +106,23 @@ class _CategoryPageViewState extends State<CategoryPageView> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: CategoryAppBar(onAddCategory: _onAddCategory),
+        drawer: Drawer(child: SafeArea(child: CustomDrawer())),
         body: BlocBuilder<CategoryCubit, CategoryState>(
           builder: (context, s) {
+            if (s.status == CategoryStatus.loading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (s.status == CategoryStatus.failure) {
+              return Center(child: Text(s.message ?? "Terjadi kesalahan"));
+            }
+
             if (s.categories.isEmpty) return _buildEmpty();
+
             return RefreshIndicator(
-              onRefresh: () async {},
+              onRefresh: () async {
+                await _categoryCubit.fetchCategories();
+              },
               child: ListView.separated(
                 padding: bodyPadding,
                 itemCount: s.categories.length,
@@ -103,10 +131,17 @@ class _CategoryPageViewState extends State<CategoryPageView> {
                   final category = s.categories[index];
                   return CategoryListTile(
                     category: category,
-                    onUpdate: () => _onUpdateCategory(category),
-                    onDelete: () => _onDeleteCategory(category),
+                    onUpdate: () {
+                      //
+                    },
+                    onDelete: () {
+                      //
+                    },
+
+                    // onUpdate: () => _onUpdateCategory(category),
+                    // onDelete: () => _onDeleteCategory(category),
                     onQtyChanged: (q) {
-                      _onQtyCategoryChanged(category.copyWith(qty: q));
+                      // _onQtyCategoryChanged(category.copyWith(qty: q));
                     },
                   );
                 },
@@ -120,7 +155,11 @@ class _CategoryPageViewState extends State<CategoryPageView> {
             return GestureDetector(
               onTap: () {
                 if (hasCategory) return;
-                context.showSnackbar("Tambahkan kategori terlebih dahulu");
+                ShowSnackbar.snackbar(
+                  context,
+                  "Tambahkan kategori terlebih dahulu",
+                  isSuccess: false,
+                );
               },
               child: CategoryActionBottomSheet(
                 onCheckout: hasCategory ? _onCheckout : null,

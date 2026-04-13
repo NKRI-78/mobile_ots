@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:mobile_ots/repositories/category/model/category.dart';
+import 'package:mobile_ots/repositories/category/model/category_models.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
 
@@ -205,10 +205,10 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ),
-                Text(
-                  category.qty.toString(),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
+                // Text(
+                //   category.qty.toString(),
+                //   style: const TextStyle(fontWeight: FontWeight.w600),
+                // ),
               ],
             ),
           );

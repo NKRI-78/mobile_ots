@@ -27,30 +27,16 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
-  final router = MyRouter.init(getIt<AppBloc>());
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      // FirebaseMessagingMisc.init();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AppBloc, AppState>(
-      builder: (_, localState) {
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          theme: baseTheme,
-          routerConfig: router,
-          builder: (context, child) {
-            return child!;
-          },
-        );
-      },
+    final app = context.watch<AppBloc>();
+
+    final router = MyRouter.init(app);
+
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      theme: baseTheme,
+      routerConfig: router,
     );
   }
 }

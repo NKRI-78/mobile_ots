@@ -6,7 +6,6 @@ final class AppState extends Equatable {
   final UserModel? user;
   final String refreshToken;
   final bool loadingNotif;
-
   final bool alreadySplash;
 
   const AppState({
@@ -14,7 +13,6 @@ final class AppState extends Equatable {
     this.refreshToken = '',
     this.user,
     this.loadingNotif = false,
-
     this.alreadySplash = false,
   });
 
@@ -27,7 +25,6 @@ final class AppState extends Equatable {
     refreshToken,
     user,
     loadingNotif,
-
     alreadySplash,
   ];
 
