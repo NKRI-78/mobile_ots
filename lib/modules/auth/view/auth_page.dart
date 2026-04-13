@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_ots/router/builder.dart';
+
 import '../../../misc/text_style.dart';
 import '../../../widgets/button/custom_button.dart';
 
@@ -97,8 +97,7 @@ class AuthView extends StatelessWidget {
                                     isLoading: state.loading,
                                     label: "Masuk",
                                     onPressed: () {
-                                      // TODO : LOGIN
-                                      CategoryRoutes().go(context);
+                                      context.read<AuthCubit>().login(context);
                                     },
                                   ),
 

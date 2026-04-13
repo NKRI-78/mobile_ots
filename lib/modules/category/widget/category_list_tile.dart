@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mobile_ots/misc/extensions.dart';
-import 'package:mobile_ots/repositories/category/model/category.dart';
+import 'package:mobile_ots/repositories/category/model/category_models.dart';
 
 class CategoryListTile extends StatefulWidget {
   const CategoryListTile({
@@ -102,7 +102,7 @@ class _CategoryListTileState extends State<CategoryListTile> {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
                     widget.category.name,
-                    maxLines: 5, 
+                    maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
