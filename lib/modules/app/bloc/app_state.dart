@@ -43,7 +43,7 @@ final class AppState extends Equatable {
   AppState copyWith({
     String? token,
     String? refreshToken,
-
+    UserModel? user,
     bool? loadingNotif,
     bool? alreadySplash,
     bool? isRelease,
