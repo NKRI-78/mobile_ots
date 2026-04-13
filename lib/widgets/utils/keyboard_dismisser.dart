@@ -5,15 +5,30 @@ class KeyboardDismisser extends StatelessWidget {
   final bool dismissOnTapOutside;
   final bool dismissOnDrag;
 
+  final VoidCallback? onTapOutside;
+  final VoidCallback? onDrag;
+
   const KeyboardDismisser({
     super.key,
     required this.child,
     this.dismissOnTapOutside = true,
     this.dismissOnDrag = false,
+    this.onTapOutside,
+    this.onDrag,
   });
 
-  void _dismissKeyboard(BuildContext context) {
+  void _dismissKeyboard() {
     FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _handleTap(BuildContext context) {
+    _dismissKeyboard();
+    onTapOutside?.call();
+  }
+
+  void _handleDrag() {
+    _dismissKeyboard();
+    onDrag?.call();
   }
 
   @override
@@ -23,7 +38,7 @@ class KeyboardDismisser extends StatelessWidget {
     if (dismissOnTapOutside) {
       current = GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () => _dismissKeyboard(context),
+        onTap: () => _handleTap(context),
         child: current,
       );
     }
@@ -31,7 +46,7 @@ class KeyboardDismisser extends StatelessWidget {
     if (dismissOnDrag) {
       current = NotificationListener<UserScrollNotification>(
         onNotification: (_) {
-          _dismissKeyboard(context);
+          _handleDrag();
           return false;
         },
         child: current,

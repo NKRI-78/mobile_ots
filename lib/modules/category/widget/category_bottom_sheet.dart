@@ -4,7 +4,7 @@ import 'package:mobile_ots/widgets/button/primary_button.dart';
 class CategoryActionBottomSheet extends StatelessWidget {
   const CategoryActionBottomSheet({super.key, required this.onCheckout});
 
-  final VoidCallback onCheckout;
+  final VoidCallback? onCheckout;
 
   @override
   Widget build(BuildContext context) {

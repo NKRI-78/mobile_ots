@@ -8,6 +8,7 @@ import 'package:mobile_ots/modules/category/widget/category_bottom_sheet.dart';
 import 'package:mobile_ots/modules/category/widget/category_list_tile.dart';
 import 'package:mobile_ots/modules/category/widget/category_name_form_sheet.dart';
 import 'package:mobile_ots/repositories/category/model/category.dart';
+import 'package:mobile_ots/widgets/dialog/checkout_dialog.dart';
 import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,7 +48,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     }
   }
 
-  void _onUpdate(Category update) async {
+  void _onUpdateCategory(Category update) async {
     final updatedName = await CategoryNameFormSheet.launch(
       context: context,
       initial: update.name,
@@ -58,12 +59,19 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     }
   }
 
-  void _onDelete(Category target) async {
+  void _onDeleteCategory(Category target) async {
     _categoryCubit.deleteCategory(target);
   }
 
   void _onQtyCategoryChanged(Category updated) {
     _categoryCubit.updateCategory(updated);
+  }
+
+  void _onCheckout() async {
+    final checkoutData = await CheckoutDialog(
+      categories: _categoryCubit.state.categories,
+    ).show(context);
+    if (checkoutData != null) {}
   }
 
   @override
@@ -78,6 +86,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
 
     return KeyboardDismisser(
       dismissOnDrag: true,
+      onTapOutside: context.hideSnackbar,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: CategoryAppBar(onAddCategory: _onAddCategory),
@@ -94,8 +103,8 @@ class _CategoryPageViewState extends State<CategoryPageView> {
                   final category = s.categories[index];
                   return CategoryListTile(
                     category: category,
-                    onUpdate: () => _onUpdate(category),
-                    onDelete: () => _onDelete(category),
+                    onUpdate: () => _onUpdateCategory(category),
+                    onDelete: () => _onDeleteCategory(category),
                     onQtyChanged: (q) {
                       _onQtyCategoryChanged(category.copyWith(qty: q));
                     },
@@ -105,7 +114,20 @@ class _CategoryPageViewState extends State<CategoryPageView> {
             );
           },
         ),
-        bottomSheet: CategoryActionBottomSheet(onCheckout: () {}),
+        bottomSheet: BlocSelector<CategoryCubit, CategoryState, bool>(
+          selector: (s) => s.categories.isNotEmpty,
+          builder: (context, hasCategory) {
+            return GestureDetector(
+              onTap: () {
+                if (hasCategory) return;
+                context.showSnackbar("Tambahkan kategori terlebih dahulu");
+              },
+              child: CategoryActionBottomSheet(
+                onCheckout: hasCategory ? _onCheckout : null,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
