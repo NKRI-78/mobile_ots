@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:mobile_ots/misc/exception.dart';
 
@@ -11,7 +10,6 @@ import '../model/category_models.dart';
 
 class CategoryRepository {
   String get category => '${MyApi.baseUrl}/api/v1/payment/qris/categories';
-  String get chargeUrl => '${MyApi.baseUrl}/api/v1/payment/qris/charge';
 
   final BaseNetworkClient http = getIt<BaseNetworkClient>();
 
@@ -150,33 +148,6 @@ class CategoryRepository {
       }
     } catch (e, st) {
       throw ErrorMapper.map(e, st);
-    }
-  }
-
-  //* checkout payment
-  Future<void> charge(ChargeRequest request) async {
-    try {
-      final response = await http.post(
-        Uri.parse(chargeUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(request.toJson()),
-      );
-
-      final jsonResp = jsonDecode(response.body);
-
-      if (response.statusCode != 200) {
-        throw Exception(jsonResp['message'] ?? "Gagal melakukan pembayaran");
-      }
-
-      if (jsonResp['error'] == true) {
-        throw Exception(jsonResp['message']);
-      }
-    } on SocketException {
-      throw Exception("Terjadi Kesalahan Jaringan");
-    } on TimeoutException {
-      throw Exception("Koneksi lambat");
-    } catch (e) {
-      throw Exception(e.toString());
     }
   }
 }

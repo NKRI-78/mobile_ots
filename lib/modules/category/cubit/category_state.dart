@@ -63,7 +63,6 @@ class CategoryState extends Equatable {
       categories: (map['categories'] as List<dynamic>? ?? [])
           .map((e) => Category.fromJson(e))
           .toList(),
-      error: AppError.fromJson(map['error']),
       fetchStatus: CategoryStatus.values.firstWhere((e) {
         return e.name == map['fetch_status'];
       }, orElse: () => CategoryStatus.initial),
@@ -76,6 +75,7 @@ class CategoryState extends Equatable {
       deleteStatus: CategoryStatus.values.firstWhere((e) {
         return e.name == map['delete_status'];
       }, orElse: () => CategoryStatus.initial),
+      error: map['error'] != null ? AppError.fromJson(map['error']) : null,
     );
   }
 }

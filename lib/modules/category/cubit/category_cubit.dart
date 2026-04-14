@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mobile_ots/misc/exception.dart';
@@ -39,8 +41,8 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
   }
 
   //* create category
-  Future<void> createCategory(Category newCategory) async {
-    final tempCategory = newCategory.copyWith(id: 0);
+  Future<void> createCategory(String name) async {
+    final tempCategory = Category(id: 0, name: name);
     final prevCategories = state.categories;
     emit(
       state.copyWith(
@@ -118,7 +120,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
   }
 
   //* delete category
-  void deleteCategory(Category target) async {
+  Future<void> deleteCategory(Category target) async {
     final prevCategories = state.categories;
     final updateCategories = prevCategories
         .where((c) => c.id != target.id)
@@ -146,65 +148,13 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
     }
   }
 
-  // Future<void> charge(int ammount, String? note) async {
-  //   emit(state.copyWith(status: CategoryStatus.loading));
-
-  //   try {
-  //     final chargeCategories = state.categories.map((c) {
-  //       return ChargeCategory(
-  //         categoryId: c.id,
-  //         categoryName: c.name,
-  //         sortNo: c.sortNo ?? 0,
-  //         qty: c.qty,
-  //         amount: 0,
-  //       );
-  //     }).toList();
-
-  //     final totalAmount = chargeCategories.fold<int>(
-  //       0,
-  //       (sum, e) => sum + (e.amount * e.qty),
-  //     );
-
-  //     final request = ChargeRequest(
-  //       amount: totalAmount,
-  //       referenceId: "cdc5e333-9b54-4607-b1f3-a19917f88337",
-  //       expiredIn: 30,
-  //       items: [
-  //         ChargeItem(
-  //           product: "Pembayaran Kategori",
-  //           amount: totalAmount,
-  //           qty: 1,
-  //         ),
-  //       ],
-  //       categories: chargeCategories,
-  //       customer: ChargeCustomer(
-  //         name: "Guest",
-  //         email: "guest@mail.com",
-  //         phone: "000000",
-  //       ),
-  //       note: "Pembayaran kategori",
-  //     );
-
-  //     await repo.charge(request);
-
-  //     emit(state.copyWith(status: CategoryStatus.success));
-  //   } catch (e) {
-  //     emit(
-  //       state.copyWith(status: CategoryStatus.failure, message: e.toString()),
-  //     );
-  //   }
-  // }
-
-  void addCategory(Category newCategory) {
-    emit(state.copyWith(categories: [...state.categories, newCategory]));
-  }
-
   @override
   CategoryState? fromJson(Map<String, dynamic> json) {
     try {
       return CategoryState.fromJson(json);
-    } catch (_) {
-      return const CategoryState();
+    } catch (c) {
+      log("CategoryState? fromJson catch = $json | ${c.toString()}");
+      throw Exception("gagal memuat CategoryState");
     }
   }
 

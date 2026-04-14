@@ -54,6 +54,18 @@ RouteBase get $categoryRoutes => GoRouteData.$route(
   path: '/category',
 
   factory: $CategoryRoutesExtension._fromState,
+  routes: [
+    GoRouteData.$route(
+      path: 'payment',
+
+      factory: $PaymentRoutesExtension._fromState,
+    ),
+    GoRouteData.$route(
+      path: 'payment-status',
+
+      factory: $PaymentStatusRoutesExtension._fromState,
+    ),
+  ],
 );
 
 extension $CategoryRoutesExtension on CategoryRoutes {
@@ -69,4 +81,40 @@ extension $CategoryRoutesExtension on CategoryRoutes {
       context.pushReplacement(location);
 
   void replace(BuildContext context) => context.replace(location);
+}
+
+extension $PaymentRoutesExtension on PaymentRoutes {
+  static PaymentRoutes _fromState(GoRouterState state) =>
+      PaymentRoutes($extra: state.extra as PaymentRequstData);
+
+  String get location => GoRouteData.$location('/category/payment');
+
+  void go(BuildContext context) => context.go(location, extra: $extra);
+
+  Future<T?> push<T>(BuildContext context) =>
+      context.push<T>(location, extra: $extra);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location, extra: $extra);
+
+  void replace(BuildContext context) =>
+      context.replace(location, extra: $extra);
+}
+
+extension $PaymentStatusRoutesExtension on PaymentStatusRoutes {
+  static PaymentStatusRoutes _fromState(GoRouterState state) =>
+      PaymentStatusRoutes($extra: state.extra as PaymentRequstData);
+
+  String get location => GoRouteData.$location('/category/payment-status');
+
+  void go(BuildContext context) => context.go(location, extra: $extra);
+
+  Future<T?> push<T>(BuildContext context) =>
+      context.push<T>(location, extra: $extra);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location, extra: $extra);
+
+  void replace(BuildContext context) =>
+      context.replace(location, extra: $extra);
 }

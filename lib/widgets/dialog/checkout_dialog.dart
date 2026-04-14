@@ -1,6 +1,6 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:mobile_ots/repositories/category/model/category_models.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
@@ -8,8 +8,13 @@ import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
 class CheckoutDialogResponseData {
   final int amount;
   final String note;
+  final List<Category> categories;
 
-  CheckoutDialogResponseData({required this.amount, required this.note});
+  CheckoutDialogResponseData({
+    required this.amount,
+    required this.note,
+    required this.categories,
+  });
 }
 
 class CheckoutDialog extends StatefulWidget {
@@ -61,7 +66,11 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     final amount = int.tryParse(rawAmount) ?? 0;
     if (_validate(amount)) {
       Navigator.of(context).pop(
-        CheckoutDialogResponseData(amount: amount, note: _noteController.text),
+        CheckoutDialogResponseData(
+          amount: amount,
+          note: _noteController.text,
+          categories: widget.categories,
+        ),
       );
     }
   }

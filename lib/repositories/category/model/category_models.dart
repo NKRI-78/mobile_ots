@@ -1,5 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:equatable/equatable.dart';
+
 import 'package:mobile_ots/misc/exception.dart';
 
 class Category extends Equatable {
@@ -104,28 +104,5 @@ class CreateCategoryResponse {
     } catch (_) {
       throw ParsingException();
     }
-  }
-}
-
-class ChargeRequest {
-  final int amount;
-  final String referenceId;
-  final int expiredIn;
-  final String? note;
-
-  ChargeRequest({
-    required this.amount,
-    required this.referenceId,
-    required this.expiredIn,
-    this.note,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'amount': amount,
-      'reference_id': referenceId,
-      'expired_in': expiredIn,
-      if (note != null) 'note': note,
-    };
   }
 }

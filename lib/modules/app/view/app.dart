@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
+import 'package:mobile_ots/modules/payment/cubit/payment_cubit.dart';
 
 import '../../../misc/injections.dart';
 import '../../../misc/theme.dart';
@@ -33,10 +35,16 @@ class _AppViewState extends State<AppView> {
 
     final router = MyRouter.init(app);
 
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: baseTheme,
-      routerConfig: router,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: getIt<PaymentCubit>()),
+        BlocProvider.value(value: getIt<CategoryCubit>()),
+      ],
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        theme: baseTheme,
+        routerConfig: router,
+      ),
     );
   }
 }

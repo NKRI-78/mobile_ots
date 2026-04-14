@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
+import 'package:mobile_ots/modules/payment/cubit/payment_cubit.dart';
+import 'package:mobile_ots/repositories/payment/repository/payment_repository.dart';
 
 import '../modules/app/bloc/app_bloc.dart';
 import '../repositories/auth_repository/repository/auth_repository.dart';
@@ -18,9 +20,11 @@ class MyInjection {
 
     //CUBIT
     getIt.registerFactory<CategoryCubit>(() => CategoryCubit());
+    getIt.registerFactory<PaymentCubit>(() => PaymentCubit());
 
     //REPOSITORY
     getIt.registerLazySingleton<AuthRepository>(() => AuthRepository());
     getIt.registerLazySingleton<CategoryRepository>(() => CategoryRepository());
+    getIt.registerLazySingleton<PaymentRepository>(() => PaymentRepository());
   }
 }

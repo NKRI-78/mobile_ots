@@ -24,18 +24,19 @@ class MyRouter {
 
         final goingToSplash = loc == splashLoc;
         final goingToAuth = loc == authLoc;
+        final goingToHomeTree = loc.startsWith(homeLoc);
 
-        // 1. WAJIB tampilkan splash sekali
+        // 1. Splash wajib sekali
         if (!alreadySplash) {
           return goingToSplash ? null : splashLoc;
         }
 
-        // 2. Kalau SUDAH login → ke home
+        // 2. Sudah login → boleh ke semua child home
         if (loggedIn) {
-          return loc == homeLoc ? null : homeLoc;
+          return goingToHomeTree ? null : homeLoc;
         }
 
-        // 3. Kalau BELUM login → ke auth
+        // 3. Belum login → hanya auth
         if (!loggedIn) {
           return goingToAuth ? null : authLoc;
         }

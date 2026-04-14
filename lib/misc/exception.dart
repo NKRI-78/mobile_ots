@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 class AppError extends Equatable {
   final String? title;
@@ -59,9 +61,13 @@ class ParsingException implements Exception {
 
 class ErrorMapper {
   static ApiException map(Object error, StackTrace stackTrace) {
-    if (error is ApiException) {
-      return error;
-    }
+    final mappedError = _map(error, stackTrace);
+    _log(mappedError);
+    return mappedError;
+  }
+
+  static ApiException _map(Object error, StackTrace stackTrace) {
+    if (error is ApiException) return error;
 
     if (error is SocketException) {
       return ApiException(
@@ -107,5 +113,16 @@ class ErrorMapper {
       original: error,
       stackTrace: stackTrace,
     );
+  }
+
+  static void _log(ApiException e) {
+    if (kReleaseMode) return;
+    log('''
+[API ERROR]
+Title   : ${e.title}
+Message : ${e.message}
+Original: ${e.original}
+Stack   : ${e.stackTrace}
+''');
   }
 }

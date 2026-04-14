@@ -13,6 +13,8 @@ import 'package:mobile_ots/modules/category/widget/category_list_tile.dart';
 import 'package:mobile_ots/modules/category/widget/category_name_form_sheet.dart';
 import 'package:mobile_ots/modules/category/widget/custom_drawer.dart';
 import 'package:mobile_ots/repositories/category/model/category_models.dart';
+import 'package:mobile_ots/repositories/payment/model/payment_models.dart';
+import 'package:mobile_ots/router/builder.dart';
 import 'package:mobile_ots/widgets/dialog/checkout_dialog.dart';
 import 'package:mobile_ots/widgets/utils/keyboard_dismisser.dart';
 
@@ -39,7 +41,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
   late CategoryCubit _categoryCubit;
 
   final _isPendingCheckout = ValueNotifier<bool>(false);
-  final _updateQtyDebouncher = Debouncer(const Duration(seconds: 2));
+  final _updateQtyDebouncers = <String, Debouncer>{};
 
   @override
   void initState() {
@@ -52,20 +54,26 @@ class _CategoryPageViewState extends State<CategoryPageView> {
   void dispose() {
     super.dispose();
     _isPendingCheckout.dispose();
-    _updateQtyDebouncher.dispose();
+    for (final debouncer in _updateQtyDebouncers.values) {
+      debouncer.dispose();
+    }
+    _updateQtyDebouncers.clear();
   }
 
+  //* fetch categories
   Future<void> _fetchCategories() {
     return _categoryCubit.fetchCategories();
   }
 
-  void _onAddCategory() async {
+  //* create/add category
+  void _onCreateCategory() async {
     final newName = await CategoryNameFormSheet.launch(context: context);
     if (newName != null) {
-      _categoryCubit.createCategory(Category(id: 0, name: newName));
+      _categoryCubit.createCategory(newName);
     }
   }
 
+  //* update category
   void _onUpdateCategory(Category update) async {
     final updatedName = await CategoryNameFormSheet.launch(
       context: context,
@@ -77,33 +85,56 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     }
   }
 
+  //* delete category
   void _onDeleteCategory(Category target) {
-    return _categoryCubit.deleteCategory(target);
+    final key = target.id.toString();
+
+    _updateQtyDebouncers[key]?.dispose();
+    _updateQtyDebouncers.remove(key);
+
+    _categoryCubit.deleteCategory(target);
   }
 
+  //* update qty category
   void _onQtyCategoryChanged(Category updated) {
-    _updateQtyDebouncher(() {
+    final key = updated.id.toString();
+
+    _updateQtyDebouncers.putIfAbsent(key, () {
+      return Debouncer(const Duration(seconds: 2));
+    });
+
+    _updateQtyDebouncers[key]!(() {
       _categoryCubit.updateCategory(updated);
     });
   }
 
+  //* handle checkout pressed
+  // woi cat gpt jangan ubah-ubah code ini fital banget
+  // init tuh handle apakah masih ada yang update qty apa engga jir
   void _onCheckoutPressed() {
-    if (_updateQtyDebouncher.isActive) {
-      _isPendingCheckout.value = true;
+    final activeDebouncers = _updateQtyDebouncers.values
+        .where((d) => d.isActive)
+        .toList();
 
-      _updateQtyDebouncher.isActiveStream
-          .where((isActive) => !isActive)
-          .first
-          .then((_) {
-            if (!mounted) return;
-            _isPendingCheckout.value = false;
-            _doCheckout();
-          });
-    } else {
+    if (activeDebouncers.isEmpty) {
       _doCheckout();
+      return;
     }
+
+    _isPendingCheckout.value = true;
+
+    final streams = activeDebouncers.map(
+      (d) => d.isActiveStream.where((active) => !active).first,
+    );
+
+    Future.wait(streams).then((_) {
+      if (!mounted) return;
+      _isPendingCheckout.value = false;
+      _doCheckout();
+    });
   }
 
+  //* do checkout
   void _doCheckout() async {
     final filteredCategories = _categoryCubit.state.categories
         .where((c) => c.qty > 0)
@@ -112,23 +143,36 @@ class _CategoryPageViewState extends State<CategoryPageView> {
       categories: filteredCategories,
     ).show(context);
 
-    if (checkoutData != null) {}
+    if (mounted && checkoutData != null) {
+      // navigasi kehalaman payment
+      // ntar create payment terjadi dihalaman itu juga bre
+      PaymentRoutes(
+        $extra: PaymentRequstData(
+          amount: checkoutData.amount,
+          note: checkoutData.note,
+          items: checkoutData.categories.map((e) {
+            return PaymentRequstDataItem(
+              qty: e.qty,
+              product: e.name,
+              amount: checkoutData.amount,
+            );
+          }).toList(),
+        ),
+      ).go(context);
+    }
   }
 
+  //* state listener
   void _stateListener(BuildContext context, CategoryState s) {
     final hasError = s.error != null;
 
-    final showFetchError = s.fetchStatus == CategoryStatus.failure;
-    final showCreateError = s.createStatus == CategoryStatus.failure;
-    final showUpdateError = s.updateStatus == CategoryStatus.failure;
-    final showDeleteError = s.deleteStatus == CategoryStatus.failure;
+    final fetchError = s.fetchStatus == CategoryStatus.failure;
+    final createError = s.createStatus == CategoryStatus.failure;
+    final updateError = s.updateStatus == CategoryStatus.failure;
+    final deleteError = s.deleteStatus == CategoryStatus.failure;
 
     final showError =
-        hasError &&
-        (showFetchError ||
-            showCreateError ||
-            showUpdateError ||
-            showDeleteError);
+        hasError && (fetchError || createError || updateError || deleteError);
 
     if (showError) {
       ShowSnackbar.snackbar(context, s.error!.message, isSuccess: false);
@@ -151,7 +195,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
         dismissOnDrag: true,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          appBar: CategoryAppBar(onAddCategory: _onAddCategory),
+          appBar: CategoryAppBar(onAddCategory: _onCreateCategory),
           drawer: Drawer(child: SafeArea(child: CustomDrawer())),
           body: BlocBuilder<CategoryCubit, CategoryState>(
             builder: (context, s) {
@@ -207,10 +251,10 @@ class _CategoryPageViewState extends State<CategoryPageView> {
                   valueListenable: _isPendingCheckout,
                   builder: (context, isPending, _) {
                     return CategoryActionBottomSheet(
+                      loading: isPending,
                       onCheckout: hasCategory && !isPending
                           ? _onCheckoutPressed
                           : null,
-                      loading: isPending,
                     );
                   },
                 ),
