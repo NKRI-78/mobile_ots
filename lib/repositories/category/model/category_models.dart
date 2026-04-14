@@ -1,32 +1,40 @@
-class Category {
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:equatable/equatable.dart';
+import 'package:mobile_ots/misc/exception.dart';
+
+class Category extends Equatable {
   final int id;
   final String name;
-  final int sortNo;
-  final int isActive;
   final int qty;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int? sortNo;
+  final int? isActive;
+  final String? createdAt;
+  final String? updatedAt;
 
-  Category({
+  const Category({
     required this.id,
     required this.name,
-    required this.sortNo,
-    required this.isActive,
-    required this.createdAt,
-    required this.updatedAt,
+    this.sortNo,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
     this.qty = 0,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'],
-      name: json['name'],
-      qty: json['qty'] ?? 0,
-      sortNo: json['sort_no'],
-      isActive: json['is_active'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-    );
+    try {
+      return Category(
+        id: json['id'],
+        name: json['name'],
+        qty: json['qty'] ?? 1,
+        sortNo: json['sort_no'],
+        isActive: json['is_active'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at'],
+      );
+    } catch (_) {
+      throw ParsingException();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -36,9 +44,34 @@ class Category {
       'qty': qty,
       'sort_no': sortNo,
       'is_active': isActive,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt,
+      'updated_at': updatedAt,
     };
+  }
+
+  @override
+  List<Object?> get props {
+    return [id, name, qty, sortNo, isActive, createdAt, updatedAt];
+  }
+
+  Category copyWith({
+    int? id,
+    String? name,
+    int? qty,
+    int? sortNo,
+    int? isActive,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return Category(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      qty: qty ?? this.qty,
+      sortNo: sortNo ?? this.sortNo,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
 
@@ -58,11 +91,19 @@ class CategoryResponse {
 
 class CreateCategoryResponse {
   final int id;
+  final int qty;
 
-  CreateCategoryResponse({required this.id});
+  CreateCategoryResponse({required this.id, this.qty = 1});
 
   factory CreateCategoryResponse.fromJson(Map<String, dynamic> json) {
-    return CreateCategoryResponse(id: json['data']['id']);
+    try {
+      return CreateCategoryResponse(
+        id: json['data']['id'],
+        qty: json['data']['qty'],
+      );
+    } catch (_) {
+      throw ParsingException();
+    }
   }
 }
 
@@ -70,18 +111,12 @@ class ChargeRequest {
   final int amount;
   final String referenceId;
   final int expiredIn;
-  final List<ChargeItem> items;
-  final List<ChargeCategory> categories;
-  final ChargeCustomer customer;
   final String? note;
 
   ChargeRequest({
     required this.amount,
     required this.referenceId,
     required this.expiredIn,
-    required this.items,
-    required this.categories,
-    required this.customer,
     this.note,
   });
 
@@ -90,64 +125,7 @@ class ChargeRequest {
       'amount': amount,
       'reference_id': referenceId,
       'expired_in': expiredIn,
-      'items': items.map((e) => e.toJson()).toList(),
-      'categories': categories.map((e) => e.toJson()).toList(),
-      'customer': customer.toJson(),
       if (note != null) 'note': note,
     };
-  }
-}
-
-class ChargeItem {
-  final String product;
-  final int amount;
-  final int qty;
-
-  ChargeItem({required this.product, required this.amount, required this.qty});
-
-  Map<String, dynamic> toJson() {
-    return {'product': product, 'amount': amount, 'qty': qty};
-  }
-}
-
-class ChargeCategory {
-  final int categoryId;
-  final String categoryName;
-  final int sortNo;
-  final int qty;
-  final int amount;
-
-  ChargeCategory({
-    required this.categoryId,
-    required this.categoryName,
-    required this.sortNo,
-    required this.qty,
-    required this.amount,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'category_id': categoryId,
-      'category_name': categoryName,
-      'sort_no': sortNo,
-      'qty': qty,
-      'amount': amount,
-    };
-  }
-}
-
-class ChargeCustomer {
-  final String name;
-  final String email;
-  final String phone;
-
-  ChargeCustomer({
-    required this.name,
-    required this.email,
-    required this.phone,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {'name': name, 'email': email, 'phone': phone};
   }
 }

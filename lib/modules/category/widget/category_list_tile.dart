@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -14,9 +16,9 @@ class CategoryListTile extends StatefulWidget {
   });
 
   final Category category;
-  final VoidCallback onUpdate;
-  final VoidCallback onDelete;
-  final Function(int qty) onQtyChanged;
+  final void Function(Category update) onUpdate;
+  final void Function(Category target) onDelete;
+  final void Function(int qty) onQtyChanged;
 
   @override
   State<CategoryListTile> createState() => _CategoryListTileState();
@@ -34,6 +36,15 @@ class _CategoryListTileState extends State<CategoryListTile> {
   }
 
   @override
+  void didUpdateWidget(covariant CategoryListTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.category.qty != widget.category.qty) {
+      _qtyController.text = widget.category.qty.toString();
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
     _qtyController.dispose();
@@ -41,7 +52,7 @@ class _CategoryListTileState extends State<CategoryListTile> {
 
   void _onDelete(BuildContext context) async {
     final shouldDelete = await _deleteConfirmationDialog();
-    if (shouldDelete) widget.onDelete();
+    if (shouldDelete) widget.onDelete(widget.category);
   }
 
   void _increment() {
@@ -67,7 +78,7 @@ class _CategoryListTileState extends State<CategoryListTile> {
         motion: DrawerMotion(),
         children: [
           SlidableAction(
-            onPressed: (_) => widget.onUpdate(),
+            onPressed: (_) => widget.onUpdate(widget.category),
             backgroundColor: context.theme.primaryColor,
             foregroundColor: Colors.white,
             icon: Icons.edit,
@@ -225,6 +236,7 @@ class _SectionContainer extends StatelessWidget {
 }
 
 class _QtyInputFormatter extends TextInputFormatter {
+  static const int min = 0;
   static const int max = 999;
 
   @override
@@ -232,12 +244,10 @@ class _QtyInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final text = newValue.text;
-    if (text.isEmpty) return _format('0');
-    final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) return _format('0');
-    int value = int.tryParse(digits) ?? 0;
-    if (value < 0) value = 0;
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return _format(min.toString());
+    int value = int.tryParse(digits) ?? min;
+    if (value < min) value = min;
     if (value > max) value = max;
     return _format(value.toString());
   }

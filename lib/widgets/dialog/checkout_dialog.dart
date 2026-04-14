@@ -33,6 +33,8 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   final _noteController = TextEditingController();
   final _noteFocus = FocusNode();
 
+  String? _amountError;
+
   List<Category> get categories => widget.categories;
 
   final _formKey = GlobalKey<FormState>();
@@ -45,15 +47,23 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     _noteFocus.dispose();
   }
 
-  void _onSubmit() {
-    if (!_formKey.currentState!.validate()) return;
+  bool _validate(int amount) {
+    if (amount <= 0) {
+      setState(() => _amountError = "Jumlah tidak boleh kosong");
+      return false;
+    }
+    if (!_formKey.currentState!.validate()) return false;
+    return true;
+  }
 
+  void _onSubmit() {
     final rawAmount = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final amount = int.tryParse(rawAmount) ?? 0;
-
-    Navigator.of(context).pop(
-      CheckoutDialogResponseData(amount: amount, note: _noteController.text),
-    );
+    if (_validate(amount)) {
+      Navigator.of(context).pop(
+        CheckoutDialogResponseData(amount: amount, note: _noteController.text),
+      );
+    }
   }
 
   @override
@@ -95,17 +105,16 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                   decoration: InputDecoration(
                     border: border,
                     hintText: "Masukan jumlah",
+                    errorText: _amountError,
                   ),
+                  onChanged: (v) {
+                    if (_amountError != null && v.isNotEmpty) {
+                      _amountError = null;
+                      setState(() {});
+                    }
+                  },
                   onFieldSubmitted: (_) {
                     FocusScope.of(context).requestFocus(_noteFocus);
-                  },
-                  validator: (v) {
-                    final raw = (v ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-                    final amount = int.tryParse(raw) ?? 0;
-                    if (amount <= 0) {
-                      return "Jumlah tidak boleh kosong";
-                    }
-                    return null;
                   },
                 ),
 
@@ -205,10 +214,10 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ),
-                // Text(
-                //   category.qty.toString(),
-                //   style: const TextStyle(fontWeight: FontWeight.w600),
-                // ),
+                Text(
+                  category.qty.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           );
