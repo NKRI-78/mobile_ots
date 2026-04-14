@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 
 class CategoryActionBottomSheet extends StatelessWidget {
-  const CategoryActionBottomSheet({super.key, required this.onCheckout});
+  const CategoryActionBottomSheet({super.key, required this.onCheckout, this.loading = false});
 
   final VoidCallback? onCheckout;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class CategoryActionBottomSheet extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       color: Colors.grey.shade200,
-      child: PrimaryButton(label: "Bayar", onPressed: onCheckout),
+      child: PrimaryButton(label: "Bayar", loading: loading, onPressed: onCheckout),
     );
   }
 }
