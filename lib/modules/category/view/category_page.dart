@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_ots/misc/debouncher.dart';
@@ -5,6 +7,7 @@ import 'package:mobile_ots/misc/debouncher.dart';
 import 'package:mobile_ots/misc/extensions.dart';
 import 'package:mobile_ots/misc/injections.dart';
 import 'package:mobile_ots/misc/snackbar.dart';
+import 'package:mobile_ots/modules/app/bloc/app_bloc.dart';
 
 import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
 import 'package:mobile_ots/modules/category/widget/category_app_bar.dart';
@@ -39,6 +42,7 @@ class CategoryPageView extends StatefulWidget {
 
 class _CategoryPageViewState extends State<CategoryPageView> {
   late CategoryCubit _categoryCubit;
+  late AppBloc _appBloc;
 
   final _isPendingCheckout = ValueNotifier<bool>(false);
   final _updateQtyDebouncers = <String, Debouncer>{};
@@ -47,6 +51,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
   void initState() {
     super.initState();
     _categoryCubit = context.read<CategoryCubit>();
+    _appBloc = context.read<AppBloc>();
     _fetchCategories();
   }
 
@@ -146,12 +151,17 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     if (mounted && checkoutData != null) {
       // navigasi kehalaman payment
       // ntar create payment terjadi dihalaman itu juga bre
-      PaymentRoutes(
-        $extra: PaymentRequstData(
+      CreatePaymentRoutes(
+        $extra: PaymentRequestData(
           amount: checkoutData.amount,
           note: checkoutData.note,
+          customer: PaymentRequestDataCustomer(
+            name: _appBloc.state.user?.name ?? "-",
+            email: "-",
+            phone: "-",
+          ),
           items: checkoutData.categories.map((e) {
-            return PaymentRequstDataItem(
+            return PaymentRequestDataItem(
               qty: e.qty,
               product: e.name,
               amount: checkoutData.amount,
@@ -196,9 +206,14 @@ class _CategoryPageViewState extends State<CategoryPageView> {
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: CategoryAppBar(onAddCategory: _onCreateCategory),
-          drawer: Drawer(child: SafeArea(child: CustomDrawer())),
+          drawer: CustomDrawer(),
           body: BlocBuilder<CategoryCubit, CategoryState>(
             builder: (context, s) {
+              log(
+                "CategoryPage BlocBuilder builder category state = ${s.toJson()}",
+                name: "CATEGORY_PAGE: ${_categoryCubit.hashCode}",
+              );
+
               final showLoading =
                   s.fetchStatus == CategoryStatus.loading &&
                   s.categories.isEmpty;

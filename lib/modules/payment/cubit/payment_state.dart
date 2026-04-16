@@ -4,26 +4,26 @@ enum PaymentStatus { initial, loading, success, failure }
 
 class PaymentState extends Equatable {
   final PaymentStatus status;
-  final PaymentResponse? response;
+  final String? referenceId;
   final AppError? error;
 
   const PaymentState({
     this.status = PaymentStatus.initial,
-    this.response,
+    this.referenceId,
     this.error,
   });
 
   @override
-  List<Object?> get props => [status, response, error];
+  List<Object?> get props => [status, referenceId, error];
 
   PaymentState copyWith({
     PaymentStatus? status,
-    PaymentResponse? response,
+    String? referenceId,
     AppError? error,
   }) {
     return PaymentState(
       status: status ?? this.status,
-      response: response ?? this.response,
+      referenceId: referenceId ?? this.referenceId,
       error: error ?? this.error,
     );
   }

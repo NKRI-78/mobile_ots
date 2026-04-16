@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_ots/misc/extensions.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 
 class CategoryActionBottomSheet extends StatelessWidget {
-  const CategoryActionBottomSheet({super.key, required this.onCheckout, this.loading = false});
+  const CategoryActionBottomSheet({
+    super.key,
+    required this.onCheckout,
+    this.loading = false,
+  });
 
   final VoidCallback? onCheckout;
   final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).padding.bottom;
+    final bottom = context.mediaQuery.padding.bottom;
     final padding = EdgeInsets.only(
       top: 4,
       left: 16,
@@ -21,7 +26,11 @@ class CategoryActionBottomSheet extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       color: Colors.grey.shade200,
-      child: PrimaryButton(label: "Bayar", loading: loading, onPressed: onCheckout),
+      child: PrimaryButton(
+        label: "Bayar",
+        loading: loading,
+        onPressed: onCheckout,
+      ),
     );
   }
 }

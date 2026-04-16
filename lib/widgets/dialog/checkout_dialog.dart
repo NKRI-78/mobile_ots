@@ -39,6 +39,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   final _noteFocus = FocusNode();
 
   String? _amountError;
+  String? _categoriesError;
 
   List<Category> get categories => widget.categories;
 
@@ -55,6 +56,10 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   bool _validate(int amount) {
     if (amount <= 0) {
       setState(() => _amountError = "Jumlah tidak boleh kosong");
+      return false;
+    }
+    if (widget.categories.isEmpty) {
+      setState(() => _categoriesError = "Tidak ada kategori yang tersedia");
       return false;
     }
     if (!_formKey.currentState!.validate()) return false;
@@ -94,18 +99,42 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // pesanan
-                _buildLabel(
-                  "Pesanan",
-                  suffixText: categories.isNotEmpty ? "Qty" : null,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    spacing: 8,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Pesanan",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Text(
+                        "Qty",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
                 _buildCategoryList(),
 
                 const SizedBox(height: 16),
 
                 // jumlah uang
-                _buildLabel("Jumlah Uang"),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    "Jumlah Uang",
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
                 TextFormField(
                   controller: _amountController,
                   textInputAction: TextInputAction.next,
@@ -130,7 +159,23 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                 const SizedBox(height: 16),
 
                 // catatan
-                _buildLabel("Catatan Pembayaran"),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    spacing: 6,
+                    children: [
+                      Text(
+                        "Catatan",
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        "(Tidak Wajib)",
+                        style: TextStyle(color: Colors.black54, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
                 TextField(
                   controller: _noteController,
                   minLines: 4,
@@ -146,6 +191,16 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
 
                 const SizedBox(height: 16),
 
+                if (_categoriesError != null ||
+                    (_categoriesError?.isNotEmpty ?? false))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      _categoriesError!,
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+
                 // submit
                 SizedBox(
                   width: double.maxFinite,
@@ -155,27 +210,6 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String labelText, {String? suffixText}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              labelText,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          if (suffixText != null)
-            Text(suffixText, style: TextStyle(fontWeight: FontWeight.w600)),
-        ],
       ),
     );
   }

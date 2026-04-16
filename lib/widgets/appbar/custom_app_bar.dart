@@ -6,11 +6,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleText,
     this.backgroundColor,
     this.actions = const <Widget>[],
+    this.automaticallyImplyLeading = true,
   });
 
   final String? titleText;
   final List<Widget> actions;
   final Color? backgroundColor;
+  final bool automaticallyImplyLeading;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: Colors.black,
       ),
       actionsPadding: EdgeInsets.only(right: 6),
+      automaticallyImplyLeading: automaticallyImplyLeading,
     );
   }
 

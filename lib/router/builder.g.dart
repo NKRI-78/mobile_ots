@@ -56,14 +56,19 @@ RouteBase get $categoryRoutes => GoRouteData.$route(
   factory: $CategoryRoutesExtension._fromState,
   routes: [
     GoRouteData.$route(
-      path: 'payment',
+      path: 'create-payment',
 
-      factory: $PaymentRoutesExtension._fromState,
+      factory: $CreatePaymentRoutesExtension._fromState,
     ),
     GoRouteData.$route(
-      path: 'payment-status',
+      path: 'transactions',
 
-      factory: $PaymentStatusRoutesExtension._fromState,
+      factory: $TransactionsRoutesExtension._fromState,
+    ),
+    GoRouteData.$route(
+      path: 'transaction-detail',
+
+      factory: $TransactionDetailRoutesExtension._fromState,
     ),
   ],
 );
@@ -83,11 +88,11 @@ extension $CategoryRoutesExtension on CategoryRoutes {
   void replace(BuildContext context) => context.replace(location);
 }
 
-extension $PaymentRoutesExtension on PaymentRoutes {
-  static PaymentRoutes _fromState(GoRouterState state) =>
-      PaymentRoutes($extra: state.extra as PaymentRequstData);
+extension $CreatePaymentRoutesExtension on CreatePaymentRoutes {
+  static CreatePaymentRoutes _fromState(GoRouterState state) =>
+      CreatePaymentRoutes($extra: state.extra as PaymentRequestData);
 
-  String get location => GoRouteData.$location('/category/payment');
+  String get location => GoRouteData.$location('/category/create-payment');
 
   void go(BuildContext context) => context.go(location, extra: $extra);
 
@@ -101,20 +106,54 @@ extension $PaymentRoutesExtension on PaymentRoutes {
       context.replace(location, extra: $extra);
 }
 
-extension $PaymentStatusRoutesExtension on PaymentStatusRoutes {
-  static PaymentStatusRoutes _fromState(GoRouterState state) =>
-      PaymentStatusRoutes($extra: state.extra as PaymentRequstData);
+extension $TransactionsRoutesExtension on TransactionsRoutes {
+  static TransactionsRoutes _fromState(GoRouterState state) =>
+      TransactionsRoutes();
 
-  String get location => GoRouteData.$location('/category/payment-status');
+  String get location => GoRouteData.$location('/category/transactions');
 
-  void go(BuildContext context) => context.go(location, extra: $extra);
+  void go(BuildContext context) => context.go(location);
 
-  Future<T?> push<T>(BuildContext context) =>
-      context.push<T>(location, extra: $extra);
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
 
   void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location, extra: $extra);
+      context.pushReplacement(location);
 
-  void replace(BuildContext context) =>
-      context.replace(location, extra: $extra);
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $TransactionDetailRoutesExtension on TransactionDetailRoutes {
+  static TransactionDetailRoutes _fromState(GoRouterState state) =>
+      TransactionDetailRoutes(
+        referenceId: state.uri.queryParameters['reference-id'],
+        hasPaid: _$boolConverter(state.uri.queryParameters['has-paid']!)!,
+      );
+
+  String get location => GoRouteData.$location(
+    '/category/transaction-detail',
+    queryParams: {
+      if (referenceId != null) 'reference-id': referenceId,
+      'has-paid': hasPaid.toString(),
+    },
+  );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+bool _$boolConverter(String value) {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      throw UnsupportedError('Cannot convert "$value" into a bool.');
+  }
 }

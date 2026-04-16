@@ -30,6 +30,14 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
       emit(
         state.copyWith(categories: result, fetchStatus: CategoryStatus.success),
       );
+      log(
+        "CategoryCubit.fetchCategories from remote = ${result.map((e) => e.toJson())} ",
+        name: "CATEGORY_CUBIT: $hashCode",
+      );
+      log(
+        "CategoryCubit.fetchCategories from state.categories after emit = ${state.categories.map((e) => e.toJson())} ",
+        name: "CATEGORY_CUBIT: $hashCode",
+      );
     } on ApiException catch (e) {
       emit(
         state.copyWith(
@@ -56,6 +64,10 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
 
     try {
       final res = await repo.createCategory(tempCategory);
+      log(
+        "CategoryCubit.createCategory created from remote = ${{"id": res.id, "qty": res.qty}} ",
+        name: "CATEGORY_CUBIT: $hashCode",
+      );
       final updatedCategories = state.categories.map((c) {
         if (identical(c, tempCategory)) {
           return c.copyWith(id: res.id, qty: res.qty);
@@ -67,6 +79,10 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           categories: updatedCategories,
           createStatus: CategoryStatus.created,
         ),
+      );
+      log(
+        "CategoryCubit.createCategory update categories state after remote = ${state.categories.map((e) => e.toJson())} ",
+        name: "CATEGORY_CUBIT: $hashCode",
       );
     } on ApiException catch (e) {
       emit(
@@ -96,8 +112,17 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
       ),
     );
 
+    log(
+      "CategoryCubit.updateCategory optimistic categories before remote = ${state.categories.map((e) => e.toJson())} ",
+      name: "CATEGORY_CUBIT: $hashCode",
+    );
+
     try {
       final updatedCategory = await repo.updateCategory(update);
+      log(
+        "CategoryCubit.updateCategory updated category from remote = ${updatedCategory.toJson()} ",
+        name: "CATEGORY_CUBIT: $hashCode",
+      );
       final syncedCategories = state.categories.map((c) {
         if (c.id == updatedCategory.id) return updatedCategory;
         return c;
@@ -107,6 +132,10 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           categories: syncedCategories,
           updateStatus: CategoryStatus.success,
         ),
+      );
+      log(
+        "CategoryCubit.updateCategory categories after remote = ${state.categories.map((e) => e.toJson())} ",
+        name: "CATEGORY_CUBIT: $hashCode",
       );
     } on ApiException catch (e) {
       emit(
@@ -134,6 +163,10 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
         updateStatus: CategoryStatus.initial,
       ),
     );
+    log(
+      "CategoryCubit.deleteCategory optimistic categories before remote = ${state.categories.map((e) => e.toJson())} ",
+      name: "CATEGORY_CUBIT: $hashCode",
+    );
     try {
       await repo.deleteCategoryById(target.id);
       emit(state.copyWith(deleteStatus: CategoryStatus.success));
@@ -144,6 +177,33 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           error: AppError(title: e.title, message: e.message),
           categories: prevCategories,
         ),
+      );
+    }
+  }
+
+  //* reset all qty from categories
+  Future<void> resetQty() async {
+    final prevCategories = state.categories;
+    final resetCategories = prevCategories
+        .map((c) => c.copyWith(qty: 0))
+        .toList();
+    emit(state.copyWith(categories: resetCategories));
+    try {
+      final futures = prevCategories
+          .where((c) => c.qty > 0)
+          .map((c) => repo.updateCategory(c.copyWith(qty: 0)))
+          .toList();
+      await Future.wait(futures);
+      log(
+        "CategoryCubit.resetQty updated qty for every categories after hit api = ${resetCategories.map((e) => e.toJson())}",
+        name: "CATEGORY_CUBIT: $hashCode",
+      );
+    } catch (e, s) {
+      emit(state.copyWith(categories: prevCategories));
+      log(
+        "CategoryCubit.resetQty rollback due to error: $e",
+        stackTrace: s,
+        name: "CATEGORY_CUBIT: $hashCode",
       );
     }
   }

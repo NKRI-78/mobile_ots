@@ -1,0 +1,98 @@
+{
+  "status": 201,
+  "error": false,
+  "message": "created",
+  "data": {
+    "id": 18,
+    "reference_id": "6c70759e-af0e-4be0-beba-ca2ed8d1c943",
+    "status": "1",
+    "amount": 1000,
+    "qr_string": null,
+    "qr_url": null,
+    "expires_at": "2026-04-15 04:11:26",
+    "categories": [
+      {
+        "category_id": null,
+        "category_name": "cat 1",
+        "sort_no": 0,
+        "qty": 1,
+        "amount": 1000
+      },
+      {
+        "category_id": null,
+        "category_name": "cat 12 updated",
+        "sort_no": 1,
+        "qty": 1,
+        "amount": 1000
+      },
+      {
+        "category_id": null,
+        "category_name": "cat 17",
+        "sort_no": 2,
+        "qty": 1,
+        "amount": 1000
+      }
+    ],
+    "provider": {
+      "meta": {
+        "timestamp": "2026-04-15T03:41:26.070Z",
+        "requestId": "f4633eb9-b7df-45c0-b6e8-da9951846b26"
+      },
+      "status": 201,
+      "data": {
+        "provider": "dki",
+        "order_id": "1776224485",
+        "payment_channel_code": "qris",
+        "reference_id": "6c70759e-af0e-4be0-beba-ca2ed8d1c943",
+        "amount": 1000,
+        "status": 1,
+        "qr": {
+          "created_at": "2026-04-15T03:41:26.000Z",
+          "updated_at": "2026-04-15T03:41:26.000Z",
+          "id": 8925,
+          "qrData": "00020101021226630017ID.CO.BANKDKI.WWW011893600111110003514302091000351430303UBE51450015ID.OR.GPNQR.WWW0215ID20243563804750303UBE52047299530336054071000.005802ID5913TUNAI PAY DKI6015JAKARTA SELATAN61051256062300110A02356934907120876654123416304A4D4",
+          "qrUrl": "https://wh.tunaipay.com/pg/api/v1/transaction/qr-code/1776224485",
+          "transaction_id": 42514
+        },
+        "customer": {
+          "created_at": "2026-04-15T03:41:26.000Z",
+          "updated_at": "2026-04-15T03:41:26.000Z",
+          "id": 42472,
+          "name": "admin",
+          "email": "admintunaipay2026",
+          "phone": "0822948",
+          "transaction_id": 42514
+        },
+        "items": [
+          {
+            "created_at": "2026-04-15T03:41:26.000Z",
+            "updated_at": "2026-04-15T03:41:26.000Z",
+            "id": 42516,
+            "product": "cat 1",
+            "amount": 1000,
+            "qty": 1,
+            "transaction_id": 42514
+          },
+          {
+            "created_at": "2026-04-15T03:41:26.000Z",
+            "updated_at": "2026-04-15T03:41:26.000Z",
+            "id": 42517,
+            "product": "cat 12 updated",
+            "amount": 1000,
+            "qty": 1,
+            "transaction_id": 42514
+          },
+          {
+            "created_at": "2026-04-15T03:41:26.000Z",
+            "updated_at": "2026-04-15T03:41:26.000Z",
+            "id": 42518,
+            "product": "cat 17",
+            "amount": 1000,
+            "qty": 1,
+            "transaction_id": 42514
+          }
+        ]
+      }
+    }
+  }
+}

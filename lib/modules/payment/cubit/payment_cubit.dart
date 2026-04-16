@@ -13,11 +13,11 @@ class PaymentCubit extends Cubit<PaymentState> {
   final PaymentRepository repo = getIt<PaymentRepository>();
 
   //* create payment
-  Future<void> createPayment(PaymentRequstData req) async {
+  Future<void> createPayment(PaymentRequestData req) async {
     emit(state.copyWith(status: PaymentStatus.loading));
     try {
       final res = await repo.createPayment(req);
-      emit(state.copyWith(response: res, status: PaymentStatus.success));
+      emit(state.copyWith(referenceId: res, status: PaymentStatus.success));
     } on ApiException catch (e) {
       emit(
         state.copyWith(
@@ -26,5 +26,26 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
       );
     }
+  }
+
+  //TODO: hapus kalau mau release
+  Future<void> simulateCreatePayment(PaymentRequestData req) async {
+    // * loading
+    emit(state.copyWith(status: PaymentStatus.loading));
+    await Future.delayed(const Duration(seconds: 2));
+
+    // * success
+    emit(state.copyWith(status: PaymentStatus.success, referenceId: ""));
+
+    // * error
+    // emit(
+    //   state.copyWith(
+    //     status: PaymentStatus.failure,
+    //     error: const AppError(
+    //       title: "Pembayaran Gagal",
+    //       message: "Koneksi terputus, silakan coba lagi.",
+    //     ),
+    //   ),
+    // );
   }
 }

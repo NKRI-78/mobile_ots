@@ -16,7 +16,8 @@ class MyRouter {
         final loggedIn = app.state.isLoggedIn;
         final alreadySplash = app.state.alreadySplash;
 
-        final loc = state.matchedLocation;
+        // Gunakan uri.toString() agar mencakup full path termasuk child
+        final loc = state.uri.toString();
 
         final splashLoc = SplashRoute().location;
         final authLoc = AuthRoutes().location;
@@ -24,6 +25,8 @@ class MyRouter {
 
         final goingToSplash = loc == splashLoc;
         final goingToAuth = loc == authLoc;
+
+        // startsWith tetap benar untuk semua child di bawah /category
         final goingToHomeTree = loc.startsWith(homeLoc);
 
         // 1. Splash wajib sekali
@@ -31,9 +34,11 @@ class MyRouter {
           return goingToSplash ? null : splashLoc;
         }
 
-        // 2. Sudah login → boleh ke semua child home
+        // 2. Sudah login → izinkan semua child home, jangan redirect
         if (loggedIn) {
-          return goingToHomeTree ? null : homeLoc;
+          if (goingToHomeTree) return null; // ✅ tetap di halaman sekarang
+          if (goingToSplash) return homeLoc; // splash setelah login → home
+          return homeLoc;
         }
 
         // 3. Belum login → hanya auth

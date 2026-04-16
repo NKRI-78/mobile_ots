@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_ots/misc/socket.dart';
 
 import '../../../misc/injections.dart';
 import '../../../misc/snackbar.dart';
@@ -45,6 +46,8 @@ class AuthCubit extends Cubit<AuthState> {
           refreshToken: response.refreshToken,
         ),
       );
+
+      SocketService().connectWithUserId(response.user.id);
 
       emit(state.copyWith(loading: false));
 

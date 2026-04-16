@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:mobile_ots/misc/exception.dart';
 import 'package:mobile_ots/repositories/payment/model/payment_models.dart';
@@ -14,11 +15,15 @@ class PaymentRepository {
   final BaseNetworkClient http = getIt<BaseNetworkClient>();
 
   //* checkout payment
-  Future<PaymentResponse> createPayment(PaymentRequstData request) async {
+  Future<String> createPayment(PaymentRequestData request) async {
+    final uri = Uri.parse(chargeUrl);
+
+    log(request.toJson().toString());
+
     try {
       final response = await http
           .post(
-            Uri.parse(chargeUrl),
+            uri,
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(request.toJson()),
           )
@@ -26,14 +31,28 @@ class PaymentRepository {
 
       final Map<String, dynamic> jsonResp = jsonDecode(response.body);
 
-      if (response.statusCode != 200 || jsonResp['error'] == true) {
+      final isHttpError =
+          response.statusCode != 200 && response.statusCode != 201;
+
+      final isApiError = jsonResp['error'] == true;
+
+      if (isHttpError || isApiError) {
         throw ApiException(
           title: "Pembayaran Gagal",
           message: jsonResp['message'] ?? "Tidak dapat memproses pembayaran",
         );
       }
 
-      return PaymentResponse.fromJson(jsonResp);
+      final data = jsonResp['data'];
+      if (data == null || data['reference_id'] == null) {
+        throw ApiException(
+          title: "Pembayaran Gagal",
+          message:
+              "Terjadi kendala saat memproses pembayaran. Silakan coba beberapa saat lagi.",
+        );
+      }
+
+      return data['reference_id'] as String;
     } catch (e, st) {
       throw ErrorMapper.map(e, st);
     }
