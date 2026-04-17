@@ -1,10 +1,10 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mobile_ots/misc/exception.dart';
 import 'package:mobile_ots/misc/injections.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/misc/request_status.dart';
+import 'package:mobile_ots/modules/transaction/widget/sorting_dialog_sheet.dart';
 import 'package:mobile_ots/repositories/transaction/model/transaction_models.dart';
 import 'package:mobile_ots/repositories/transaction/transaction_repository.dart';
 
@@ -32,11 +32,13 @@ class TransactionCubit extends Cubit<TransactionState> {
         sort: sort,
         status: status,
       );
+      logger("TransactionCubit.getTransaction result = ${result.toMap()}");
       emit(
         state.copyWith(
           transactions: result.items,
           transactionsStatus: RequestStatus.success,
           currentPage: page,
+          totalAmount: result.totalPaidAmount,
           hasMore: result.page < result.totalPages,
         ),
       );
@@ -51,13 +53,13 @@ class TransactionCubit extends Cubit<TransactionState> {
   }
 
   //* load more pagination
-  Future<void> loadMoreTransactions() async {
+  Future<void> loadMoreTransactions({String sort = "newest"}) async {
     if (!state.hasMore || state.isFetchingMore) return;
 
     emit(state.copyWith(isFetchingMore: true));
     try {
       final nextPage = state.currentPage + 1;
-      final result = await repo.getTransactions(page: nextPage);
+      final result = await repo.getTransactions(page: nextPage, sort: sort);
       emit(
         state.copyWith(
           transactions: [...state.transactions, ...result.items],
@@ -81,7 +83,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(transactionDetailStatus: RequestStatus.loading));
     try {
       final newRemoteTransaction = await repo.getTransactionByRefId(refId);
-      log(
+      logger(
         "TransactionCubit.getTransactionByRefID newRemoteTransaction = ${newRemoteTransaction.toJson()}",
       );
       emit(
@@ -131,5 +133,10 @@ class TransactionCubit extends Cubit<TransactionState> {
       return e;
     }).toList();
     emit(state.copyWith(transactions: updatedTransactions));
+  }
+
+  //* mark sort mode
+  void markSortMode(SortMode newMode) {
+    emit(state.copyWith(sortMode: newMode));
   }
 }

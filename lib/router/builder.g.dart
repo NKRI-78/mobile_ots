@@ -6,7 +6,11 @@ part of 'builder.dart';
 // GoRouterGenerator
 // **************************************************************************
 
-List<RouteBase> get $appRoutes => [$splashRoute, $authRoutes, $categoryRoutes];
+List<RouteBase> get $appRoutes => [
+  $splashRoute,
+  $authRoutes,
+  $transactionsRoutes,
+];
 
 RouteBase get $splashRoute => GoRouteData.$route(
   path: '/splash',
@@ -50,20 +54,22 @@ extension $AuthRoutesExtension on AuthRoutes {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $categoryRoutes => GoRouteData.$route(
-  path: '/category',
+RouteBase get $transactionsRoutes => GoRouteData.$route(
+  path: '/transactions',
 
-  factory: $CategoryRoutesExtension._fromState,
+  factory: $TransactionsRoutesExtension._fromState,
   routes: [
     GoRouteData.$route(
-      path: 'create-payment',
+      path: 'category',
 
-      factory: $CreatePaymentRoutesExtension._fromState,
-    ),
-    GoRouteData.$route(
-      path: 'transactions',
+      factory: $CategoryRoutesExtension._fromState,
+      routes: [
+        GoRouteData.$route(
+          path: 'create-payment',
 
-      factory: $TransactionsRoutesExtension._fromState,
+          factory: $CreatePaymentRoutesExtension._fromState,
+        ),
+      ],
     ),
     GoRouteData.$route(
       path: 'transaction-detail',
@@ -73,10 +79,26 @@ RouteBase get $categoryRoutes => GoRouteData.$route(
   ],
 );
 
+extension $TransactionsRoutesExtension on TransactionsRoutes {
+  static TransactionsRoutes _fromState(GoRouterState state) =>
+      TransactionsRoutes();
+
+  String get location => GoRouteData.$location('/transactions');
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
 extension $CategoryRoutesExtension on CategoryRoutes {
   static CategoryRoutes _fromState(GoRouterState state) => CategoryRoutes();
 
-  String get location => GoRouteData.$location('/category');
+  String get location => GoRouteData.$location('/transactions/category');
 
   void go(BuildContext context) => context.go(location);
 
@@ -92,7 +114,8 @@ extension $CreatePaymentRoutesExtension on CreatePaymentRoutes {
   static CreatePaymentRoutes _fromState(GoRouterState state) =>
       CreatePaymentRoutes($extra: state.extra as PaymentRequestData);
 
-  String get location => GoRouteData.$location('/category/create-payment');
+  String get location =>
+      GoRouteData.$location('/transactions/category/create-payment');
 
   void go(BuildContext context) => context.go(location, extra: $extra);
 
@@ -106,54 +129,23 @@ extension $CreatePaymentRoutesExtension on CreatePaymentRoutes {
       context.replace(location, extra: $extra);
 }
 
-extension $TransactionsRoutesExtension on TransactionsRoutes {
-  static TransactionsRoutes _fromState(GoRouterState state) =>
-      TransactionsRoutes();
-
-  String get location => GoRouteData.$location('/category/transactions');
-
-  void go(BuildContext context) => context.go(location);
-
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  void replace(BuildContext context) => context.replace(location);
-}
-
 extension $TransactionDetailRoutesExtension on TransactionDetailRoutes {
   static TransactionDetailRoutes _fromState(GoRouterState state) =>
       TransactionDetailRoutes(
-        referenceId: state.uri.queryParameters['reference-id'],
-        hasPaid: _$boolConverter(state.uri.queryParameters['has-paid']!)!,
+        $extra: state.extra as TransactionDetailPageParam?,
       );
 
-  String get location => GoRouteData.$location(
-    '/category/transaction-detail',
-    queryParams: {
-      if (referenceId != null) 'reference-id': referenceId,
-      'has-paid': hasPaid.toString(),
-    },
-  );
+  String get location =>
+      GoRouteData.$location('/transactions/transaction-detail');
 
-  void go(BuildContext context) => context.go(location);
+  void go(BuildContext context) => context.go(location, extra: $extra);
 
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+  Future<T?> push<T>(BuildContext context) =>
+      context.push<T>(location, extra: $extra);
 
   void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
+      context.pushReplacement(location, extra: $extra);
 
-  void replace(BuildContext context) => context.replace(location);
-}
-
-bool _$boolConverter(String value) {
-  switch (value) {
-    case 'true':
-      return true;
-    case 'false':
-      return false;
-    default:
-      throw UnsupportedError('Cannot convert "$value" into a bool.');
-  }
+  void replace(BuildContext context) =>
+      context.replace(location, extra: $extra);
 }

@@ -10,7 +10,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return CustomAppBar(
       titleText: "Pilih Kategori",
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Colors.white,
       actions: [IconButton(onPressed: onAddCategory, icon: Icon(Icons.add))],
     );
   }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 var baseTheme = ThemeData(
-  scaffoldBackgroundColor: Colors.grey.shade100,
+  scaffoldBackgroundColor: Color(0xFFf0f2f8),
   colorScheme: ColorScheme.light(
-    surface: Colors.white,
+    surface: Color(0xFFf0f2f8),
     primary: Color(0xff1A73E9),
   ),
   appBarTheme: AppBarTheme(
@@ -16,8 +16,8 @@ var baseTheme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.white,
+      foregroundColor: Color(0xFFf0f2f8),
+      backgroundColor: Color(0xff1A73E9),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     ),

@@ -54,12 +54,12 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   }
 
   bool _validate(int amount) {
-    if (amount <= 0) {
-      setState(() => _amountError = "Jumlah tidak boleh kosong");
-      return false;
-    }
     if (widget.categories.isEmpty) {
       setState(() => _categoriesError = "Tidak ada kategori yang tersedia");
+      return false;
+    }
+    if (amount <= 0) {
+      setState(() => _amountError = "Jumlah tidak boleh kosong");
       return false;
     }
     if (!_formKey.currentState!.validate()) return false;

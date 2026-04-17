@@ -8,6 +8,8 @@ class CategoryState extends Equatable {
   final CategoryStatus createStatus;
   final CategoryStatus updateStatus;
   final CategoryStatus deleteStatus;
+  final bool isResettingQty;
+  final bool isResetQtyCompleted;
   final AppError? error;
 
   const CategoryState({
@@ -16,6 +18,8 @@ class CategoryState extends Equatable {
     this.createStatus = CategoryStatus.initial,
     this.updateStatus = CategoryStatus.initial,
     this.deleteStatus = CategoryStatus.initial,
+    this.isResettingQty = false,
+    this.isResetQtyCompleted = false,
     this.error,
   });
 
@@ -26,6 +30,8 @@ class CategoryState extends Equatable {
     createStatus,
     updateStatus,
     deleteStatus,
+    isResettingQty,
+    isResetQtyCompleted,
     error,
   ];
 
@@ -35,6 +41,8 @@ class CategoryState extends Equatable {
     CategoryStatus? createStatus,
     CategoryStatus? updateStatus,
     CategoryStatus? deleteStatus,
+    bool? isResettingQty,
+    bool? isResetQtyCompleted,
     AppError? error,
   }) {
     return CategoryState(
@@ -43,6 +51,8 @@ class CategoryState extends Equatable {
       createStatus: createStatus ?? this.createStatus,
       updateStatus: updateStatus ?? this.updateStatus,
       deleteStatus: deleteStatus ?? this.deleteStatus,
+      isResettingQty: isResettingQty ?? this.isResettingQty,
+      isResetQtyCompleted: isResetQtyCompleted ?? this.isResetQtyCompleted,
       error: error ?? this.error,
     );
   }
@@ -54,6 +64,8 @@ class CategoryState extends Equatable {
       'create_status': createStatus.name,
       'update_status': updateStatus.name,
       'delete_status': deleteStatus.name,
+      'is_resetting_qty': isResettingQty,
+      'is_reset_qty_completed': isResetQtyCompleted,
       'error': error?.toJson(),
     };
   }
@@ -75,6 +87,8 @@ class CategoryState extends Equatable {
       deleteStatus: CategoryStatus.values.firstWhere((e) {
         return e.name == map['delete_status'];
       }, orElse: () => CategoryStatus.initial),
+      isResettingQty: map['is_resetting_qty'],
+      isResetQtyCompleted: map['is_reset_qty_completed'],
       error: map['error'] != null ? AppError.fromJson(map['error']) : null,
     );
   }

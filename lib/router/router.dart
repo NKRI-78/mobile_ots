@@ -21,7 +21,7 @@ class MyRouter {
 
         final splashLoc = SplashRoute().location;
         final authLoc = AuthRoutes().location;
-        final homeLoc = CategoryRoutes().location;
+        final homeLoc = TransactionsRoutes().location;
 
         final goingToSplash = loc == splashLoc;
         final goingToAuth = loc == authLoc;

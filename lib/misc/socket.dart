@@ -1,7 +1,6 @@
 // ignore_for_file: library_prefixes
 
-import 'dart:developer';
-
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 typedef SocketEventCallback = void Function(dynamic data);
@@ -26,11 +25,11 @@ class SocketService {
   /// [path]   : Custom socket path, default '/socket.io'.
   void connect({String? token, Map<String, dynamic>? query, String? path}) {
     if (isConnected) {
-      log('[Socket] Sudah terhubung, skip connect.', name: 'SocketService');
+      logger('[Socket] Sudah terhubung, skip connect.', name: 'SocketService');
       return;
     }
 
-    log(
+    logger(
       '\n┌─────────────────────────────────────────\n'
       '│ [Socket] Memulai koneksi...\n'
       '│  Base URL : $_baseUrl\n'
@@ -71,7 +70,7 @@ class SocketService {
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
-    log('[Socket] Terputus.', name: 'SocketService');
+    logger('[Socket] Terputus.', name: 'SocketService');
   }
 
   // ─── Default Listeners ────────────────────────────────────────────────────
@@ -79,22 +78,25 @@ class SocketService {
   void _registerDefaultListeners() {
     _socket!
       ..onConnect((_) {
-        log('[Socket] Terhubung — id: ${_socket?.id}', name: 'SocketService');
+        logger(
+          '[Socket] Terhubung — id: ${_socket?.id}',
+          name: 'SocketService',
+        );
       })
       ..onDisconnect((reason) {
-        log('[Socket] Disconnect: $reason', name: 'SocketService');
+        logger('[Socket] Disconnect: $reason', name: 'SocketService');
       })
       ..onConnectError((err) {
-        log('[Socket] Connect error: $err', name: 'SocketService');
+        logger('[Socket] Connect error: $err', name: 'SocketService');
       })
       ..onError((err) {
-        log('[Socket] Error: $err', name: 'SocketService');
+        logger('[Socket] Error: $err', name: 'SocketService');
       })
       ..onReconnect((attempt) {
-        log('[Socket] Reconnect attempt #$attempt', name: 'SocketService');
+        logger('[Socket] Reconnect attempt #$attempt', name: 'SocketService');
       })
       ..onReconnectFailed((_) {
-        log('[Socket] Reconnect gagal.', name: 'SocketService');
+        logger('[Socket] Reconnect gagal.', name: 'SocketService');
       });
   }
 
@@ -103,14 +105,14 @@ class SocketService {
   /// Kirim event ke server.
   void emit(String event, [dynamic data]) {
     if (!isConnected) {
-      log(
+      logger(
         '[Socket] Tidak terhubung, gagal emit "$event".',
         name: 'SocketService',
       );
       return;
     }
     _socket!.emit(event, data);
-    log('[Socket] Emit "$event": $data', name: 'SocketService');
+    logger('[Socket] Emit "$event": $data', name: 'SocketService');
   }
 
   /// Kirim event dan tunggu acknowledgement dari server.
@@ -120,14 +122,14 @@ class SocketService {
     required void Function(dynamic ack) onAck,
   }) {
     if (!isConnected) {
-      log(
+      logger(
         '[Socket] Tidak terhubung, gagal emitWithAck "$event".',
         name: 'SocketService',
       );
       return;
     }
     _socket!.emitWithAck(event, data, ack: onAck);
-    log('[Socket] EmitWithAck "$event": $data', name: 'SocketService');
+    logger('[Socket] EmitWithAck "$event": $data', name: 'SocketService');
   }
 
   // ─── Listen ───────────────────────────────────────────────────────────────
@@ -135,25 +137,25 @@ class SocketService {
   /// Daftarkan listener untuk event tertentu.
   void on(String event, SocketEventCallback callback) {
     _socket?.on(event, callback);
-    log('[Socket] Listening on "$event"', name: 'SocketService');
+    logger('[Socket] Listening on "$event"', name: 'SocketService');
   }
 
   /// Daftarkan listener yang hanya dipanggil sekali.
   void once(String event, SocketEventCallback callback) {
     _socket?.once(event, callback);
-    log('[Socket] Once on "$event"', name: 'SocketService');
+    logger('[Socket] Once on "$event"', name: 'SocketService');
   }
 
   /// Hapus listener untuk event tertentu.
   void off(String event, [SocketEventCallback? callback]) {
     _socket?.off(event, callback);
-    log('[Socket] Off "$event"', name: 'SocketService');
+    logger('[Socket] Off "$event"', name: 'SocketService');
   }
 
   /// Hapus semua listener.
   void offAll() {
     _socket?.clearListeners();
-    log('[Socket] Semua listener dihapus.', name: 'SocketService');
+    logger('[Socket] Semua listener dihapus.', name: 'SocketService');
   }
 
   // ─── Room ─────────────────────────────────────────────────────────────────

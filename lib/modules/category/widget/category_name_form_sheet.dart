@@ -115,7 +115,7 @@ class _CategoryNameFormSheetState extends State<CategoryNameFormSheet> {
                   width: 2.0,
                 ),
               ),
-              hintText: "Contoh: CAT 1",
+              hintText: "Contoh: Festival atau VIP",
               hintStyle: TextStyle(color: Colors.grey.shade400),
             ),
           ),

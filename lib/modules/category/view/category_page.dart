@@ -1,11 +1,10 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_ots/misc/debouncher.dart';
 
 import 'package:mobile_ots/misc/extensions.dart';
 import 'package:mobile_ots/misc/injections.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/misc/snackbar.dart';
 import 'package:mobile_ots/modules/app/bloc/app_bloc.dart';
 
@@ -14,7 +13,6 @@ import 'package:mobile_ots/modules/category/widget/category_app_bar.dart';
 import 'package:mobile_ots/modules/category/widget/category_bottom_sheet.dart';
 import 'package:mobile_ots/modules/category/widget/category_list_tile.dart';
 import 'package:mobile_ots/modules/category/widget/category_name_form_sheet.dart';
-import 'package:mobile_ots/modules/category/widget/custom_drawer.dart';
 import 'package:mobile_ots/repositories/category/model/category_models.dart';
 import 'package:mobile_ots/repositories/payment/model/payment_models.dart';
 import 'package:mobile_ots/router/builder.dart';
@@ -105,7 +103,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
     final key = updated.id.toString();
 
     _updateQtyDebouncers.putIfAbsent(key, () {
-      return Debouncer(const Duration(seconds: 2));
+      return Debouncer(const Duration(milliseconds: 600));
     });
 
     _updateQtyDebouncers[key]!(() {
@@ -206,10 +204,9 @@ class _CategoryPageViewState extends State<CategoryPageView> {
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: CategoryAppBar(onAddCategory: _onCreateCategory),
-          drawer: CustomDrawer(),
           body: BlocBuilder<CategoryCubit, CategoryState>(
             builder: (context, s) {
-              log(
+              logger(
                 "CategoryPage BlocBuilder builder category state = ${s.toJson()}",
                 name: "CATEGORY_PAGE: ${_categoryCubit.hashCode}",
               );
@@ -248,14 +245,19 @@ class _CategoryPageViewState extends State<CategoryPageView> {
               );
             },
           ),
-          bottomSheet: BlocSelector<CategoryCubit, CategoryState, bool>(
-            selector: (s) => s.categories.isNotEmpty,
-            builder: (context, hasCategory) {
+          bottomSheet: BlocBuilder<CategoryCubit, CategoryState>(
+            builder: (context, s) {
+              final hasCategory = s.categories.isNotEmpty;
+              final hasValidQty = s.categories.any((c) => c.qty > 0);
+              final showButtonState = hasCategory && hasValidQty;
+
               void handleEmptyCategory() {
-                if (hasCategory) return;
+                if (showButtonState) return;
                 ShowSnackbar.snackbar(
                   context,
-                  "Tambahkan kategori terlebih dahulu",
+                  !hasCategory
+                      ? "Tambahkan minimal 1 kategori terlebih dahulu"
+                      : "Setidaknya 1 kategori harus memiliki jumlah qty lebih dari 0",
                   isSuccess: false,
                 );
               }
@@ -267,7 +269,7 @@ class _CategoryPageViewState extends State<CategoryPageView> {
                   builder: (context, isPending, _) {
                     return CategoryActionBottomSheet(
                       loading: isPending,
-                      onCheckout: hasCategory && !isPending
+                      onCheckout: showButtonState && !isPending
                           ? _onCheckoutPressed
                           : null,
                     );

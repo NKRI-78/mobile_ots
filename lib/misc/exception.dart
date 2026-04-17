@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mobile_ots/misc/logger.dart';
 
 class AppError extends Equatable {
   final String? title;
@@ -117,7 +117,7 @@ class ErrorMapper {
 
   static void _log(ApiException e) {
     if (kReleaseMode) return;
-    log('''
+    logger('''
 [API ERROR]
 Title   : ${e.title}
 Message : ${e.message}

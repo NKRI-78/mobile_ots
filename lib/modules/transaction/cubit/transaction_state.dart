@@ -6,6 +6,8 @@ class TransactionState extends Equatable {
   final TransactionData? transactionData;
   final List<TransactionData> transactions;
   final bool hasPaidBySocketFlag;
+  final int totalAmount;
+  final SortMode sortMode;
   final AppError? error;
 
   // pagination
@@ -19,6 +21,8 @@ class TransactionState extends Equatable {
     this.transactionData,
     this.error,
     this.hasPaidBySocketFlag = false,
+    this.totalAmount = 0,
+    this.sortMode = SortMode.newest,
     this.transactions = const <TransactionData>[],
     this.currentPage = 1,
     this.hasMore = true,
@@ -31,9 +35,11 @@ class TransactionState extends Equatable {
     transactionsStatus,
     transactionData,
     hasPaidBySocketFlag,
+    totalAmount,
     error,
     transactions,
     currentPage,
+    sortMode,
     hasMore,
     isFetchingMore,
   ];
@@ -43,9 +49,11 @@ class TransactionState extends Equatable {
     RequestStatus? transactionsStatus,
     TransactionData? transactionData,
     AppError? error,
+    SortMode? sortMode,
     bool? hasPaidBySocketFlag,
     List<TransactionData>? transactions,
     int? currentPage,
+    int? totalAmount,
     bool? hasMore,
     bool? isFetchingMore,
   }) {
@@ -59,6 +67,8 @@ class TransactionState extends Equatable {
       transactions: transactions ?? this.transactions,
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
+      sortMode: sortMode ?? this.sortMode,
+      totalAmount: totalAmount ?? this.totalAmount,
       isFetchingMore: isFetchingMore ?? this.isFetchingMore,
     );
   }

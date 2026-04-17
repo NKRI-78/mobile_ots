@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,23 +5,32 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_ots/misc/exception.dart';
 import 'package:mobile_ots/misc/extensions.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/misc/request_status.dart';
 import 'package:mobile_ots/misc/socket.dart';
 import 'package:mobile_ots/modules/transaction/cubit/transaction_cubit.dart';
 import 'package:mobile_ots/repositories/transaction/model/transaction_models.dart';
 import 'package:mobile_ots/router/builder.dart';
+import 'package:mobile_ots/widgets/animation/lottie_animation.dart';
 import 'package:mobile_ots/widgets/appbar/custom_app_bar.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 
-class TransactionDetailPage extends StatefulWidget {
-  const TransactionDetailPage({
-    super.key,
-    required this.referenceId,
-    required this.hasPaid,
-  });
-
-  final String? referenceId;
+class TransactionDetailPageParam {
+  final String refID;
   final bool hasPaid;
+  final bool fromCreatePayment;
+
+  TransactionDetailPageParam({
+    required this.refID,
+    required this.hasPaid,
+    this.fromCreatePayment = false,
+  });
+}
+
+class TransactionDetailPage extends StatefulWidget {
+  const TransactionDetailPage({super.key, required this.param});
+
+  final TransactionDetailPageParam? param;
 
   @override
   State<TransactionDetailPage> createState() => _TransactionDetailPageState();
@@ -31,6 +38,9 @@ class TransactionDetailPage extends StatefulWidget {
 
 class _TransactionDetailPageState extends State<TransactionDetailPage> {
   late TransactionCubit _transactionCubit;
+
+  bool get hasPaid => widget.param?.hasPaid ?? false;
+  String? get refID => widget.param?.refID;
 
   @override
   void initState() {
@@ -53,34 +63,26 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   //* listen socket
   _listenSocketWhenUnpaid() {
-    if (widget.hasPaid) return;
+    // if (hasPaid) return;
     SocketService().on("payment-update", (data) {
       // contoh response socket
       // {order_id: e3307a5d-4306-46f7-aeba-b38a875852fa, status: 2, user_id: 1},
-      log('[TransactionDetailPage].listenSocket payment-update: $data');
+      logger('[TransactionDetailPage].listenSocket payment-update: $data');
       final status = data['status'];
       final success =
           (status is int && status == 2) || (status is String && status == '2');
 
       // kalau transaksi berhasil sebenernya cuma mark state aja
       if (mounted && success) {
-        // pertama mark dulu statusnya jadi true biar state langsung berubah
-        // kedua baru mark transaction sekarang .status == paid dalam list transaksi
-        // ketika back kehalaman daftar transaksi
+        // mark state status transaksi untuk ubah ui via soket
         _transactionCubit.markTransactionStatusFlag(paid: true);
-        if (widget.referenceId != null) {
-          _transactionCubit.markTransactionStatusByRefId(
-            widget.referenceId!,
-            paid: true,
-          );
-        }
       }
     });
   }
 
   //* off socket
   void _offSocket() {
-    if (widget.hasPaid) return;
+    if (hasPaid) return;
     SocketService().off("payment-update");
   }
 
@@ -90,10 +92,55 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   //* fetch transaction detail
   Future<void> _fetchTransactionDetail() async {
-    if (widget.referenceId != null) {
-      _transactionCubit.getTransactionByRefId(widget.referenceId!);
+    if (refID != null) {
+      _transactionCubit.getTransactionByRefId(refID!);
     }
   }
+
+  //* mark transaction status flag
+  void _resetTransactionFlagWhenUnpaid() {
+    if (hasPaid) return;
+    _transactionCubit.markTransactionStatusFlag(paid: false);
+  }
+
+  //* check if should fetch transaction
+  // !! hanya jalankan get transactions ketika (belum dibayar || from create payment) && transaksi berhasil
+  bool _shouldFetchTransactions() {
+    if (widget.param?.fromCreatePayment ?? false) {
+      return true;
+    }
+    return (!hasPaid || (widget.param?.fromCreatePayment ?? false)) &&
+        (_transactionCubit.state.hasPaidBySocketFlag ||
+            _transactionCubit.state.transactionData?.status == "2");
+  }
+
+  //* handle button kembali
+  // jadi ketika back mau gamau harus fetch all transaction lagi
+  // biar pas udah sampai kehalaman transaksi state udah berubah
+  // transaksi sekarang udah masuk kedalam daftar transaksi
+  void _onBackButtonPressed() async {
+    if (_shouldFetchTransactions()) {
+      await _transactionCubit.getTransactions();
+    }
+    if (mounted) TransactionsRoutes().go(context);
+  }
+
+  //* handle pop
+  // masih ada hubunganya sama method _onBackButtonPressed
+  // kalau _onBackButtonPressed itu user back via button
+  // kalau method ini handle back via back button os
+  // tujuanya sama yaitu fetch transaction dulu sebelum back dari halaman ini
+  void _handlePop(bool didPop) async {
+    if (didPop) return;
+    if (_shouldFetchTransactions()) {
+      await _transactionCubit.getTransactions();
+    }
+    if (mounted) TransactionsRoutes().go(context);
+  }
+
+  //// =========================================
+  //// FORMATTING
+  //// =========================================
 
   //* format rupiah
   String _formatRupiah(int? value, {bool withSymbol = true}) {
@@ -103,12 +150,6 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
       decimalDigits: 0,
     );
     return formatter.format(value);
-  }
-
-  //* mark transaction status flag
-  void _resetTransactionFlagWhenUnpaid() {
-    if (widget.hasPaid) return;
-    _transactionCubit.markTransactionStatusFlag(paid: false);
   }
 
   //* format date
@@ -125,7 +166,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final referenceId = widget.referenceId;
+    final referenceId = refID;
 
     final bottom = context.mediaQuery.padding.bottom;
     final bodyPadding = EdgeInsets.only(
@@ -141,94 +182,106 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
       bottom: bottom + 16,
     );
 
-    return Scaffold(
-      appBar: CustomAppBar(titleText: "Qr Pembayaran"),
-      body: BlocBuilder<TransactionCubit, TransactionState>(
-        builder: (context, s) {
-          if (referenceId == null || referenceId.isEmpty) {
-            return _buildInvalidTransaction();
-          }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) => _handlePop(didPop),
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: "Qr Pembayaran"),
+        body: BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, s) {
+            if (referenceId == null || referenceId.isEmpty) {
+              return _buildInvalidTransaction();
+            }
 
-          final showLoading =
-              s.transactionDetailStatus == RequestStatus.loading;
-          final showError =
-              s.transactionDetailStatus == RequestStatus.error &&
-              s.error != null;
+            final showLoading =
+                s.transactionDetailStatus == RequestStatus.loading;
+            final showError =
+                s.transactionDetailStatus == RequestStatus.error &&
+                s.error != null;
 
-          if (showLoading) return _buildLoading();
-          if (showError) return _buildError(s.error!);
+            if (showLoading) return _buildLoading();
+            if (showError) return _buildError(s.error!);
 
-          final transactionData = s.transactionData;
-          final categories = transactionData?.categories ?? [];
-          final hasNote =
-              transactionData?.note != null &&
-              (transactionData?.note?.isNotEmpty ?? false);
+            final transactionData = s.transactionData;
+            final categories = transactionData?.categories ?? [];
+            final hasNote =
+                transactionData?.note != null &&
+                (transactionData?.note?.isNotEmpty ?? false);
 
-          return RefreshIndicator(
-            onRefresh: _fetchTransactionDetail,
-            child: ListView(
-              padding: bodyPadding,
-              children: [
-                // logo e-tupay
-                Opacity(
-                  opacity: 0.5,
-                  child: Image.asset(
-                    "assets/images/logo.png",
-                    width: 60,
-                    height: 40,
+            return RefreshIndicator(
+              onRefresh: _fetchTransactionDetail,
+              child: ListView(
+                padding: bodyPadding,
+                children: [
+                  // logo e-tupay
+                  Opacity(
+                    opacity: 0.5,
+                    child: Image.asset(
+                      "assets/images/logo.png",
+                      width: 60,
+                      height: 40,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // qr
-                _buildQrOrTransactionStatus(s),
-                const SizedBox(height: 24),
+                  // qr
+                  _buildQrOrTransactionStatus(s),
+                  const SizedBox(height: 24),
 
-                // total pembayaran
-                Text(
-                  _formatRupiah(transactionData?.amount),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
+                  // total pembayaran
+                  Text(
+                    _formatRupiah(transactionData?.amount),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
 
-                // current date
-                Text(
-                  _formatDateFromString(transactionData?.createdAt),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black54, fontSize: 13),
-                ),
-                const SizedBox(height: 24),
+                  // current date
+                  Text(
+                    _formatDateFromString(transactionData?.createdAt),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  ),
+                  const SizedBox(height: 24),
 
-                // catatan
-                if (hasNote) _buildNote(transactionData!.note!),
+                  // catatan
+                  if (hasNote) _buildNote(transactionData!.note!),
 
-                // list transaksi
-                _buildTransactionList(categories),
-              ],
-            ),
-          );
-        },
-      ),
-      bottomSheet: BlocSelector<TransactionCubit, TransactionState, bool>(
-        selector: (s) {
-          final hasPaidByTransactionStatus = s.transactionData?.status == "2";
-          return s.hasPaidBySocketFlag || hasPaidByTransactionStatus;
-        },
-        builder: (context, hasPaidByState) {
-          final hasPaidByParam = widget.hasPaid;
-          final showButton = hasPaidByParam || hasPaidByState;
-          if (!showButton) return const SizedBox.shrink();
-          return Container(
-            width: double.infinity,
-            padding: bottomPadding,
-            color: Colors.white,
-            child: PrimaryButton(
-              label: "Kembali",
-              onPressed: () => CategoryRoutes().go(context),
-            ),
-          );
-        },
+                  // list transaksi
+                  _buildTransactionList(categories),
+                ],
+              ),
+            );
+          },
+        ),
+        bottomSheet: BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, s) {
+            final hasPaidByTransactionStatus = s.transactionData?.status == "2";
+            final hasPaidBySocketFlag = s.hasPaidBySocketFlag;
+            final hasPaidByParam = hasPaid;
+
+            final showButton =
+                hasPaidByParam ||
+                hasPaidBySocketFlag ||
+                hasPaidByTransactionStatus;
+
+            if (!showButton) return const SizedBox.shrink();
+
+            final loadingGetTransaction =
+                s.transactionsStatus == RequestStatus.loading;
+
+            return Container(
+              width: double.infinity,
+              padding: bottomPadding,
+              color: Colors.white,
+              child: PrimaryButton(
+                label: "Kembali",
+                loading: loadingGetTransaction,
+                onPressed: !loadingGetTransaction ? _onBackButtonPressed : null,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -331,23 +384,23 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
     final qrUrl = s.transactionData?.provider?.data?.qr?.qrUrl;
 
-    if (qrUrl == null || qrUrl.isEmpty) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: Center(
-          child: Text(
-            widget.hasPaid ? "Pembayaran berhasil" : "QR belum tersedia",
-          ),
-        ),
-      );
-    }
-
     final paymentSuccessWidget = SizedBox(
       width: size,
       height: size,
-      child: const Center(child: Text("Pembayaran berhasil")),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: LottieAnimation("assets/lottie/success.lottie"),
+      ),
     );
+
+    if (qrUrl == null || qrUrl.isEmpty) {
+      if (hasPaid) return paymentSuccessWidget;
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Center(child: Text("QR belum tersedia")),
+      );
+    }
 
     final qrWidget = CachedNetworkImage(
       imageUrl: qrUrl,
@@ -385,8 +438,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
     // ini handle dilevel socket
     // refresh ke success state kalau sudah status berubah via socket
-    if (!widget.hasPaid && s.hasPaidBySocketFlag) {
-      return paymentSuccessWidget;
+    if (!hasPaid && s.hasPaidBySocketFlag) {
+      if (s.hasPaidBySocketFlag) {
+        return paymentSuccessWidget;
+      } else {
+        return qrWidget;
+      }
     }
 
     // ini handle ketika user refresh halaman
@@ -396,7 +453,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
     }
 
     // ini langsung hardcode ke success karena datanya valid via parameter
-    if (widget.hasPaid) return paymentSuccessWidget;
+    if (hasPaid) return paymentSuccessWidget;
 
     return qrWidget;
   }

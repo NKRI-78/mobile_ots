@@ -27,14 +27,23 @@ class AuthRoutes extends GoRouteData {
   }
 }
 
-@TypedGoRoute<CategoryRoutes>(
-  path: '/category',
+@TypedGoRoute<TransactionsRoutes>(
+  path: '/transactions',
   routes: [
-    TypedGoRoute<CreatePaymentRoutes>(path: "create-payment"),
-    TypedGoRoute<TransactionsRoutes>(path: "transactions"),
+    TypedGoRoute<CategoryRoutes>(
+      path: "category",
+      routes: [TypedGoRoute<CreatePaymentRoutes>(path: "create-payment")],
+    ),
     TypedGoRoute<TransactionDetailRoutes>(path: "transaction-detail"),
   ],
 )
+class TransactionsRoutes extends GoRouteData {
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return TransactionsPage();
+  }
+}
+
 class CategoryRoutes extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
@@ -53,21 +62,13 @@ class CreatePaymentRoutes extends GoRouteData {
   }
 }
 
-class TransactionsRoutes extends GoRouteData {
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return TransactionsPage();
-  }
-}
-
 class TransactionDetailRoutes extends GoRouteData {
-  final String? referenceId;
-  final bool hasPaid;
+  final TransactionDetailPageParam? $extra;
 
-  TransactionDetailRoutes({required this.referenceId, required this.hasPaid});
+  TransactionDetailRoutes({this.$extra});
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return TransactionDetailPage(referenceId: referenceId, hasPaid: hasPaid);
+    return TransactionDetailPage(param: $extra);
   }
 }

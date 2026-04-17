@@ -1,10 +1,12 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:mobile_ots/misc/exception.dart';
 import 'package:mobile_ots/misc/http_client.dart';
 import 'package:mobile_ots/misc/injections.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/misc/my_api.dart';
 import 'package:mobile_ots/repositories/transaction/model/transaction_models.dart';
 
@@ -14,6 +16,8 @@ class PaginatedResult<T> {
   final int limit;
   final int total;
   final int totalPages;
+  final int totalAmount;
+  final int totalPaidAmount;
 
   const PaginatedResult({
     required this.items,
@@ -21,7 +25,21 @@ class PaginatedResult<T> {
     required this.limit,
     required this.total,
     required this.totalPages,
+    required this.totalAmount,
+    required this.totalPaidAmount,
   });
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'items': items.map((x) => x.toString()).toList(),
+      'page': page,
+      'limit': limit,
+      'total': total,
+      'totalPages': totalPages,
+      'totalAmount': totalAmount,
+      'totalPaidAmount': totalPaidAmount,
+    };
+  }
 }
 
 class TransactionRepository {
@@ -87,27 +105,23 @@ class TransactionRepository {
           }
         } catch (e, st) {
           if (!kReleaseMode) {
-            log(
+            logger(
               "error insert transaction on transactions based items from api = ${e.toString()} | ${st.toString()}t",
             );
           }
         }
       }
 
-      log(
-        {
-          "items": transactions.map(
-            (e) => {
-              "amount": e.amount,
-              "status": e.status,
-              "note": e.note ?? "-",
-            },
-          ),
+      logger(
+        "TransactionRepository.getTransactions = ${{
+          "items": transactions.map((e) => {"amount": e.amount, "status": e.status, "note": e.note ?? "-"}),
           "page": data['page'],
           "limit": data['limit'],
           "total": data['total'],
           "total_pages": data['total_pages'],
-        }.toString(),
+          "total_amount": data['total_amount'],
+          "total_paid_amount": data['total_paid_amount'],
+        }}",
       );
 
       return PaginatedResult(
@@ -116,6 +130,8 @@ class TransactionRepository {
         limit: data['limit'],
         total: data['total'],
         totalPages: data['total_pages'],
+        totalAmount: data['total_amount'] ?? 0,
+        totalPaidAmount: data['total_paid_amount'] ?? 0,
       );
     } catch (e, st) {
       throw ErrorMapper.map(e, st);

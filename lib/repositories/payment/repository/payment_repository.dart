@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:mobile_ots/misc/exception.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/repositories/payment/model/payment_models.dart';
 
 import '../../../misc/http_client.dart';
@@ -18,7 +18,7 @@ class PaymentRepository {
   Future<String> createPayment(PaymentRequestData request) async {
     final uri = Uri.parse(chargeUrl);
 
-    log(request.toJson().toString());
+    logger(request.toJson().toString());
 
     try {
       final response = await http

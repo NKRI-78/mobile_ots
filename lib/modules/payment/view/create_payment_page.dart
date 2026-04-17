@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_ots/misc/exception.dart';
-import 'package:mobile_ots/misc/extensions.dart';
 import 'package:mobile_ots/modules/category/cubit/category_cubit.dart';
 import 'package:mobile_ots/modules/payment/cubit/payment_cubit.dart';
+import 'package:mobile_ots/modules/transaction/view/transaction_detail_page.dart';
 import 'package:mobile_ots/repositories/payment/model/payment_models.dart';
 import 'package:mobile_ots/router/builder.dart';
+import 'package:mobile_ots/widgets/animation/lottie_animation.dart';
 import 'package:mobile_ots/widgets/appbar/custom_app_bar.dart';
 import 'package:mobile_ots/widgets/button/primary_button.dart';
 
@@ -41,14 +42,19 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
     // 1. reset qty dimasing-masing kategori
     // 2. navigasi kehalaman transaction detail
     if (s.status == PaymentStatus.success) {
-      Future.delayed(const Duration(milliseconds: 1500), () {
+      Future.delayed(const Duration(milliseconds: 1500), () async {
+        // 1. reset qty dimasing-masing kategori
+        await _categoryCubit.resetAllQty();
+        // 2. navigasi kehalaman transaction detail
         if (context.mounted) {
-          // 1. reset qty dimasing-masing kategori
-          _categoryCubit.resetQty();
-          // 2. navigasi kehalaman transaction detail
           TransactionDetailRoutes(
-            referenceId: s.referenceId,
-            hasPaid: false,
+            // referenceId: s.referenceId,
+            // hasPaid: false,
+            $extra: TransactionDetailPageParam(
+              refID: s.referenceId ?? "",
+              hasPaid: false,
+              fromCreatePayment: true,
+            ),
           ).go(context);
         }
       });
@@ -108,7 +114,11 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: context.theme.primaryColor),
+          SizedBox(
+            height: 140,
+            width: 140,
+            child: LottieAnimation("assets/lottie/payment-loading.lottie"),
+          ),
           const SizedBox(height: 16),
           const Text(
             "Sedang memproses pembayaran...",
@@ -129,7 +139,11 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: context.theme.primaryColor),
+          SizedBox(
+            height: 140,
+            width: 140,
+            child: LottieAnimation("assets/lottie/payment-loading.lottie"),
+          ),
           const SizedBox(height: 16),
           const Text(
             "Membuka detail pembayaran...",

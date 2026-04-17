@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mobile_ots/misc/exception.dart';
 import 'package:mobile_ots/misc/injections.dart';
+import 'package:mobile_ots/misc/logger.dart';
 import 'package:mobile_ots/repositories/category/model/category_models.dart';
 
 import '../../../repositories/category/repository/category_repository.dart';
@@ -30,11 +29,11 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
       emit(
         state.copyWith(categories: result, fetchStatus: CategoryStatus.success),
       );
-      log(
+      logger(
         "CategoryCubit.fetchCategories from remote = ${result.map((e) => e.toJson())} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
-      log(
+      logger(
         "CategoryCubit.fetchCategories from state.categories after emit = ${state.categories.map((e) => e.toJson())} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
@@ -64,7 +63,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
 
     try {
       final res = await repo.createCategory(tempCategory);
-      log(
+      logger(
         "CategoryCubit.createCategory created from remote = ${{"id": res.id, "qty": res.qty}} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
@@ -80,7 +79,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           createStatus: CategoryStatus.created,
         ),
       );
-      log(
+      logger(
         "CategoryCubit.createCategory update categories state after remote = ${state.categories.map((e) => e.toJson())} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
@@ -112,14 +111,14 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
       ),
     );
 
-    log(
+    logger(
       "CategoryCubit.updateCategory optimistic categories before remote = ${state.categories.map((e) => e.toJson())} ",
       name: "CATEGORY_CUBIT: $hashCode",
     );
 
     try {
       final updatedCategory = await repo.updateCategory(update);
-      log(
+      logger(
         "CategoryCubit.updateCategory updated category from remote = ${updatedCategory.toJson()} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
@@ -133,7 +132,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           updateStatus: CategoryStatus.success,
         ),
       );
-      log(
+      logger(
         "CategoryCubit.updateCategory categories after remote = ${state.categories.map((e) => e.toJson())} ",
         name: "CATEGORY_CUBIT: $hashCode",
       );
@@ -163,7 +162,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
         updateStatus: CategoryStatus.initial,
       ),
     );
-    log(
+    logger(
       "CategoryCubit.deleteCategory optimistic categories before remote = ${state.categories.map((e) => e.toJson())} ",
       name: "CATEGORY_CUBIT: $hashCode",
     );
@@ -182,8 +181,14 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
   }
 
   //* reset all qty from categories
-  Future<void> resetQty() async {
+  Future<void> resetAllQty() async {
     final prevCategories = state.categories;
+
+    final hasQty = prevCategories.any((c) => c.qty > 0);
+    if (!hasQty) return;
+
+    emit(state.copyWith(isResettingQty: true, isResetQtyCompleted: false));
+
     final resetCategories = prevCategories
         .map((c) => c.copyWith(qty: 0))
         .toList();
@@ -194,17 +199,19 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
           .map((c) => repo.updateCategory(c.copyWith(qty: 0)))
           .toList();
       await Future.wait(futures);
-      log(
-        "CategoryCubit.resetQty updated qty for every categories after hit api = ${resetCategories.map((e) => e.toJson())}",
+      logger(
+        "CategoryCubit.resetAllQty updated qty for every categories after hit api = ${resetCategories.map((e) => e.toJson())}",
         name: "CATEGORY_CUBIT: $hashCode",
       );
     } catch (e, s) {
       emit(state.copyWith(categories: prevCategories));
-      log(
-        "CategoryCubit.resetQty rollback due to error: $e",
+      logger(
+        "CategoryCubit.resetAllQty rollback due to error: $e",
         stackTrace: s,
         name: "CATEGORY_CUBIT: $hashCode",
       );
+    } finally {
+      emit(state.copyWith(isResettingQty: false, isResetQtyCompleted: true));
     }
   }
 
@@ -213,7 +220,7 @@ class CategoryCubit extends HydratedCubit<CategoryState> {
     try {
       return CategoryState.fromJson(json);
     } catch (c) {
-      log("CategoryState? fromJson catch = $json | ${c.toString()}");
+      logger("CategoryState? fromJson catch = $json | ${c.toString()}");
       throw Exception("gagal memuat CategoryState");
     }
   }

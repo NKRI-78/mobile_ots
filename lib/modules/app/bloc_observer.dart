@@ -1,6 +1,5 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
+import 'package:mobile_ots/misc/logger.dart';
 
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
@@ -8,12 +7,12 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onEvent(Bloc<dynamic, dynamic> bloc, Object? event) {
     super.onEvent(bloc, event);
-    log('${bloc.runtimeType} $event');
+    logger('${bloc.runtimeType} $event');
   }
 
   @override
   void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
-    log('${bloc.runtimeType} $error');
+    logger('${bloc.runtimeType} $error');
     super.onError(bloc, error, stackTrace);
   }
 
@@ -23,6 +22,6 @@ class AppBlocObserver extends BlocObserver {
     Transition<dynamic, dynamic> transition,
   ) {
     super.onTransition(bloc, transition);
-    log('$transition');
+    logger('$transition');
   }
 }
